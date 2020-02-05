@@ -177,7 +177,7 @@ object GenCoreDefault{
         ),
         new CsrPlugin(
           argConfig.csrPluginConfig match {
-            case "small" => CsrPluginConfig.small(mtvecInit = argConfig.machineTrapVector).copy(mtvecAccess = WRITE_ONLY)
+            case "small" => CsrPluginConfig.small(mtvecInit = argConfig.machineTrapVector).copy(mtvecAccess = WRITE_ONLY, ecallGen = true, wfiGenAsNop = true)
             case "all" => CsrPluginConfig.all(mtvecInit = argConfig.machineTrapVector)
             case "linux" => CsrPluginConfig.linuxFull(mtVecInit = argConfig.machineTrapVector).copy(ebreakGen = false)
             case "linux-minimal" => CsrPluginConfig.linuxMinimal(mtVecInit = argConfig.machineTrapVector).copy(ebreakGen = false)
