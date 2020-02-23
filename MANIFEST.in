@@ -1,2 +1,2 @@
-graft litex/data/vexriscv/verilog
+graft litex/data/cpu/vexriscv/verilog/
 global-exclude *.py[cod]

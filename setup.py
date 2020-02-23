@@ -3,28 +3,25 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-import subprocess
-try:
-    VERSION = subprocess.check_output(['git', 'describe'])
-except subprocess.CalledProcessError as e:
-    print(e)
-    VERSION = "0.0.?"
-
+from litex.data.cpu.vexriscv import version_str
 
 setuptools.setup(
-    name="litex-data-vexriscv",
-    version=VERSION,
+    name="litex-data-cpu-vexriscv",
+    version=version_str,
     author="LiteX Authors",
-    author_email="author@example.com",
-    description="Data required to use VexRISCV with LiteX",
+    author_email="litex@googlegroups.com",
+    description="Python module containing data files for using the VexRISCV cpu with LiteX.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/litex-hub/litex-data-vexriscv",
-    packages=setuptools.find_packages(),
+    url="https://github.com/litex-hub/litex-data-cpu-vexriscv",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.5',
+    zip_safe=False,
+    packages=setuptools.find_packages(),
+    package_data={'litex.data.cpu.vexriscv': ['litex/data/cpu/vexriscv/verilog/**']},
+    include_package_data=True,
 )
