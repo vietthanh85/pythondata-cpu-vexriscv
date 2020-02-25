@@ -16,7 +16,7 @@ with open(os.path.join(litex.data.cpu.vexriscv.location, my_data_file)) as f:
     print(f.read())
 ```
 
-The data files come from https://github.com/enjoy-digital/VexRiscv-verilog.git
+The data files come from https://github.com/litex-hub/litex-verilog-vexriscv
 and are imported using `git subtrees` to the directory
 [litex/data/cpu/vexriscv/verilog](litex/data/cpu/vexriscv/verilog].
 

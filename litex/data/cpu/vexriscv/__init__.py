@@ -1,7 +1,7 @@
 import os.path
 __dir__ = os.path.split(os.path.abspath(os.path.realpath(__file__)))[0]
 data_location = os.path.join(__dir__, "verilog")
-src = "https://github.com/enjoy-digital/VexRiscv-verilog.git"
+src = "https://github.com/litex-hub/litex-verilog-vexriscv"
 git_hash = "8baad219885a47f65959a9cd4870691e84678db4"
 git_describe = "v0.0-54-g8baad21"
 version_str = "0.0.post54"
