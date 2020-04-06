@@ -19,7 +19,7 @@ with open(os.path.join(litex.data.cpu.vexriscv.location, my_data_file)) as f:
 
 
 The data files are generated from https://github.com/SpinalHDL/VexRISCV.git and place in the directory
-[litex/data/cpu/vexriscv/verilog](litex/data/cpu/vexriscv/verilog].
+[litex/data/cpu/vexriscv/verilog](litex/data/cpu/vexriscv/verilog).
 
 
 ## Installing
