@@ -24,6 +24,8 @@ case class ArgConfig(
   iCacheSize : Int = 4096,
   dCacheSize : Int = 4096,
   mulDiv : Boolean = true,
+  atomics: Boolean = false,
+  compressedGen: Boolean = false,
   singleCycleMulDiv : Boolean = true,
   singleCycleShift : Boolean = true,
   relaxedPcCalculation : Boolean = false,
@@ -58,6 +60,8 @@ object GenCoreDefault{
       // ex : -dCacheSize=XXX
       opt[Int]("dCacheSize")     action { (v, c) => c.copy(dCacheSize = v) } text("Set data cache size, 0 mean no cache")
       opt[Boolean]("mulDiv")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32IM")
+      opt[Boolean]("atomics")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32I[A]")
+      opt[Boolean]("compressedGen")    action { (v, c) => c.copy(compressedGen = v)   } text("set RV32I[C]")
       opt[Boolean]("singleCycleMulDiv")    action { (v, c) => c.copy(singleCycleMulDiv = v)   } text("If true, MUL/DIV are single-cycle")
       opt[Boolean]("singleCycleShift")    action { (v, c) => c.copy(singleCycleShift = v)   } text("If true, SHIFTS are single-cycle")
       opt[Boolean]("relaxedPcCalculation")    action { (v, c) => c.copy(relaxedPcCalculation = v)   } text("If true, one extra stage will be added to the fetch to improve timings")
@@ -85,6 +89,7 @@ object GenCoreDefault{
             prediction = argConfig.prediction,
             cmdForkOnSecondStage = false,
             cmdForkPersistence = false, //Not required as the wishbone bridge ensure it
+            compressedGen = argConfig.compressedGen,
             memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4)
           )
         }else {
@@ -92,6 +97,7 @@ object GenCoreDefault{
             resetVector = argConfig.resetVector,
             relaxedPcCalculation = argConfig.relaxedPcCalculation,
             prediction = argConfig.prediction,
+            compressedGen = argConfig.compressedGen,
             memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4),
             config = InstructionCacheConfig(
               cacheSize = argConfig.iCacheSize,
@@ -104,7 +110,7 @@ object GenCoreDefault{
               catchAccessFault = true,
               asyncTagMemory = false,
               twoCycleRam = false,
-              twoCycleCache = true
+              twoCycleCache = !argConfig.compressedGen
             )
           )
         },
@@ -113,7 +119,7 @@ object GenCoreDefault{
           new DBusSimplePlugin(
             catchAddressMisaligned = true,
             catchAccessFault = true,
-            withLrSc = linux,
+            withLrSc = linux || argConfig.atomics,
             memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4)
           )
         }else {
@@ -132,7 +138,7 @@ object GenCoreDefault{
               catchAccessError = true,
               catchIllegal = true,
               catchUnaligned = true,
-              withLrSc = linux,
+              withLrSc = linux || argConfig.atomics,
               withAmo = linux,
               earlyWaysHits = argConfig.dBusCachedEarlyWaysHits
             ),

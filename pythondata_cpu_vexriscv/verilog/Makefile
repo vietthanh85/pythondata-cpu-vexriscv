@@ -1,6 +1,6 @@
 SRC := ${shell find . -type f -name \*.scala}
 
-all: VexRiscv.v VexRiscv_Debug.v VexRiscv_Lite.v VexRiscv_LiteDebug.v VexRiscv_Min.v VexRiscv_MinDebug.v VexRiscv_Full.v VexRiscv_FullDebug.v VexRiscv_Linux.v VexRiscv_LinuxDebug.v VexRiscv_LinuxNoDspFmax.v
+all: VexRiscv.v VexRiscv_Debug.v VexRiscv_Lite.v VexRiscv_LiteDebug.v VexRiscv_IMAC.v VexRiscv_IMACDebug.v VexRiscv_Min.v VexRiscv_MinDebug.v VexRiscv_Full.v VexRiscv_FullDebug.v VexRiscv_Linux.v VexRiscv_LinuxDebug.v VexRiscv_LinuxNoDspFmax.v
 
 VexRiscv.v: $(SRC)
 	sbt compile "runMain vexriscv.GenCoreDefault"
@@ -13,6 +13,12 @@ VexRiscv_Lite.v: $(SRC)
 
 VexRiscv_LiteDebug.v: $(SRC)
 	sbt compile "runMain vexriscv.GenCoreDefault -d --iCacheSize 2048 --dCacheSize 0 --mulDiv true --singleCycleShift false --singleCycleMulDiv false --outputFile VexRiscv_LiteDebug"
+
+VexRiscv_IMAC.v: $(SRC)
+	sbt compile "runMain vexriscv.GenCoreDefault --csrPluginConfig all --atomics true --compressedGen true --outputFile VexRiscv_IMAC"
+
+VexRiscv_IMACDebug.v: $(SRC)
+	sbt compile "runMain vexriscv.GenCoreDefault --csrPluginConfig all --atomics true --compressedGen true -d --outputFile VexRiscv_IMACDebug"
 
 VexRiscv_Min.v: $(SRC)
 	sbt compile "runMain vexriscv.GenCoreDefault --iCacheSize 0 --dCacheSize 0 --mulDiv false --singleCycleShift false --singleCycleMulDiv false --bypass false --prediction none --outputFile VexRiscv_Min"
