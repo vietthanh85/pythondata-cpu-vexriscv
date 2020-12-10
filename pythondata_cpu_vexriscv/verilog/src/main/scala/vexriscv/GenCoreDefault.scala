@@ -23,6 +23,7 @@ case class ArgConfig(
   debug : Boolean = false,
   iCacheSize : Int = 4096,
   dCacheSize : Int = 4096,
+  pmp : Boolean = false,
   mulDiv : Boolean = true,
   atomics: Boolean = false,
   compressedGen: Boolean = false,
@@ -59,6 +60,7 @@ object GenCoreDefault{
       opt[Int]("iCacheSize")     action { (v, c) => c.copy(iCacheSize = v) } text("Set instruction cache size, 0 mean no cache")
       // ex : -dCacheSize=XXX
       opt[Int]("dCacheSize")     action { (v, c) => c.copy(dCacheSize = v) } text("Set data cache size, 0 mean no cache")
+      opt[Boolean]("pmp")    action { (v, c) => c.copy(pmp = v)   } text("Enable physical memory protection")
       opt[Boolean]("mulDiv")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32IM")
       opt[Boolean]("atomics")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32I[A]")
       opt[Boolean]("compressedGen")    action { (v, c) => c.copy(compressedGen = v)   } text("set RV32I[C]")
@@ -187,6 +189,7 @@ object GenCoreDefault{
             case "all" => CsrPluginConfig.all(mtvecInit = argConfig.machineTrapVector)
             case "linux" => CsrPluginConfig.linuxFull(mtVecInit = argConfig.machineTrapVector).copy(ebreakGen = false)
             case "linux-minimal" => CsrPluginConfig.linuxMinimal(mtVecInit = argConfig.machineTrapVector).copy(ebreakGen = false)
+            case "secure" => CsrPluginConfig.secure(argConfig.machineTrapVector)
           }
         ),
         new YamlPlugin(argConfig.outputFile.concat(".yaml"))
@@ -222,6 +225,10 @@ object GenCoreDefault{
       // Add in the Debug plugin, if requested
       if(argConfig.debug) {
         plugins += new DebugPlugin(ClockDomain.current.clone(reset = Bool().setName("debugReset")))
+      }
+
+      if(argConfig.pmp) {
+        plugins += new PmpPlugin(regions = 16, ioRange = _.msb)
       }
 
       // CPU configuration
