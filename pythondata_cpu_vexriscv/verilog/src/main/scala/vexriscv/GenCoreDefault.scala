@@ -60,7 +60,7 @@ object GenCoreDefault{
       // ex : -dCacheSize=XXX
       opt[Int]("dCacheSize")     action { (v, c) => c.copy(dCacheSize = v) } text("Set data cache size, 0 mean no cache")
       opt[Boolean]("mulDiv")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32IM")
-      opt[Boolean]("atomics")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32I[A]")
+      opt[Boolean]("atomics")    action { (v, c) => c.copy(atomics = v)   } text("set RV32I[A]")
       opt[Boolean]("compressedGen")    action { (v, c) => c.copy(compressedGen = v)   } text("set RV32I[C]")
       opt[Boolean]("singleCycleMulDiv")    action { (v, c) => c.copy(singleCycleMulDiv = v)   } text("If true, MUL/DIV are single-cycle")
       opt[Boolean]("singleCycleShift")    action { (v, c) => c.copy(singleCycleShift = v)   } text("If true, SHIFTS are single-cycle")
