@@ -148,11 +148,14 @@ object GenCoreDefault{
             csrInfo = true
           )
         },
-        if(linux) new MmuPlugin(
+        if (linux) new MmuPlugin(
           ioRange = (x => x(31 downto 28) === 0xB || x(31 downto 28) === 0xE || x(31 downto 28) === 0xF)
-        )  else new StaticMemoryTranslatorPlugin(
+        ) else if (argConfig.pmp) new PmpPlugin(
+          regions = 16, ioRange = _.msb
+        ) else new StaticMemoryTranslatorPlugin(
           ioRange      = _.msb
         ),
+
         new DecoderSimplePlugin(
           catchIllegalInstruction = true
         ),
@@ -225,10 +228,6 @@ object GenCoreDefault{
       // Add in the Debug plugin, if requested
       if(argConfig.debug) {
         plugins += new DebugPlugin(ClockDomain.current.clone(reset = Bool().setName("debugReset")))
-      }
-
-      if(argConfig.pmp) {
-        plugins += new PmpPlugin(regions = 16, ioRange = _.msb)
       }
 
       // CPU configuration
