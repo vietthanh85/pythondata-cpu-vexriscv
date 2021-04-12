@@ -94,7 +94,7 @@ object GenCoreDefault{
             cmdForkOnSecondStage = false,
             cmdForkPersistence = false, //Not required as the wishbone bridge ensure it
             compressedGen = argConfig.compressedGen,
-            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4)
+            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null
           )
         }else {
           new IBusCachedPlugin(
@@ -102,11 +102,11 @@ object GenCoreDefault{
             relaxedPcCalculation = argConfig.relaxedPcCalculation,
             prediction = argConfig.prediction,
             compressedGen = argConfig.compressedGen,
-            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4),
+            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null,
             config = InstructionCacheConfig(
               cacheSize = argConfig.iCacheSize,
               bytePerLine = 32,
-              wayCount = (argConfig.iCacheSize + 4095) / 4096,
+              wayCount = if(linux) ((argConfig.iCacheSize + 4095) / 4096) else 1,
               addressWidth = 32,
               cpuDataWidth = 32,
               memDataWidth = 32,
@@ -124,7 +124,7 @@ object GenCoreDefault{
             catchAddressMisaligned = true,
             catchAccessFault = true,
             withLrSc = linux || argConfig.atomics,
-            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4)
+            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null
           )
         }else {
           new DBusCachedPlugin(
@@ -135,7 +135,7 @@ object GenCoreDefault{
             config = new DataCacheConfig(
               cacheSize = argConfig.dCacheSize,
               bytePerLine = 32,
-              wayCount = (argConfig.dCacheSize + 4095) / 4096,
+              wayCount = if(linux) ((argConfig.dCacheSize + 4095) / 4096) else 1,
               addressWidth = 32,
               cpuDataWidth = 32,
               memDataWidth = 32,
@@ -146,7 +146,7 @@ object GenCoreDefault{
               withAmo = linux,
               earlyWaysHits = argConfig.dBusCachedEarlyWaysHits
             ),
-            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4),
+            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null,
             csrInfo = true
           )
         },
