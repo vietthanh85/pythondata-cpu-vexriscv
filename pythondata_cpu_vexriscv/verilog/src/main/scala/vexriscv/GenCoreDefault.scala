@@ -25,6 +25,7 @@ case class ArgConfig(
   dCacheSize : Int = 4096,
   pmp : Boolean = false,
   mulDiv : Boolean = true,
+  cfu : Boolean = false,
   atomics: Boolean = false,
   compressedGen: Boolean = false,
   singleCycleMulDiv : Boolean = true,
@@ -62,6 +63,7 @@ object GenCoreDefault{
       opt[Int]("dCacheSize")     action { (v, c) => c.copy(dCacheSize = v) } text("Set data cache size, 0 mean no cache")
       opt[Boolean]("pmp")    action { (v, c) => c.copy(pmp = v)   } text("Enable physical memory protection")
       opt[Boolean]("mulDiv")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32IM")
+      opt[Boolean]("cfu")       action { (v, c) => c.copy(cfu = v)   } text("If true, add SIMD ADD custom function unit")
       opt[Boolean]("atomics")    action { (v, c) => c.copy(atomics = v)   } text("set RV32I[A]")
       opt[Boolean]("compressedGen")    action { (v, c) => c.copy(compressedGen = v)   } text("set RV32I[C]")
       opt[Boolean]("singleCycleMulDiv")    action { (v, c) => c.copy(singleCycleMulDiv = v)   } text("If true, MUL/DIV are single-cycle")
@@ -92,7 +94,7 @@ object GenCoreDefault{
             cmdForkOnSecondStage = false,
             cmdForkPersistence = false, //Not required as the wishbone bridge ensure it
             compressedGen = argConfig.compressedGen,
-            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4)
+            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null
           )
         }else {
           new IBusCachedPlugin(
@@ -100,11 +102,11 @@ object GenCoreDefault{
             relaxedPcCalculation = argConfig.relaxedPcCalculation,
             prediction = argConfig.prediction,
             compressedGen = argConfig.compressedGen,
-            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4),
+            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null,
             config = InstructionCacheConfig(
               cacheSize = argConfig.iCacheSize,
               bytePerLine = 32,
-              wayCount = 1,
+              wayCount = if(linux) ((argConfig.iCacheSize + 4095) / 4096) else 1,
               addressWidth = 32,
               cpuDataWidth = 32,
               memDataWidth = 32,
@@ -122,7 +124,7 @@ object GenCoreDefault{
             catchAddressMisaligned = true,
             catchAccessFault = true,
             withLrSc = linux || argConfig.atomics,
-            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4)
+            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null
           )
         }else {
           new DBusCachedPlugin(
@@ -133,7 +135,7 @@ object GenCoreDefault{
             config = new DataCacheConfig(
               cacheSize = argConfig.dCacheSize,
               bytePerLine = 32,
-              wayCount = 1,
+              wayCount = if(linux) ((argConfig.dCacheSize + 4095) / 4096) else 1,
               addressWidth = 32,
               cpuDataWidth = 32,
               memDataWidth = 32,
@@ -144,7 +146,7 @@ object GenCoreDefault{
               withAmo = linux,
               earlyWaysHits = argConfig.dBusCachedEarlyWaysHits
             ),
-            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4),
+            memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null,
             csrInfo = true
           )
         },
@@ -183,7 +185,8 @@ object GenCoreDefault{
           pessimisticAddressMatch = false
         ),
         new BranchPlugin(
-          earlyBranch = false,
+          // If using CFU, use earlyBranch to avoid incorrect CFU execution
+          earlyBranch = argConfig.cfu,
           catchAddressMisaligned = true
         ),
         new CsrPlugin(
@@ -228,6 +231,45 @@ object GenCoreDefault{
       // Add in the Debug plugin, if requested
       if(argConfig.debug) {
         plugins += new DebugPlugin(ClockDomain.current.clone(reset = Bool().setName("debugReset")))
+      }
+
+      // CFU plugin/port
+      if(argConfig.cfu) {
+        plugins ++= List(
+          new CfuPlugin(
+            stageCount = 1,
+            allowZeroLatency = true,
+            encodings = List(
+              // CFU R-type
+              CfuPluginEncoding (
+                instruction = M"-------------------------0001011",
+                functionId = List(14 downto 12, 31 downto 25),
+                input2Kind = CfuPlugin.Input2Kind.RS
+              )
+              //,
+              // CFU I-type
+              //CfuPluginEncoding (
+              //  instruction = M"-----------------000-----0101011",
+              //  functionId = List(23 downto 20),
+              //  input2Kind = CfuPlugin.Input2Kind.IMM_I
+              //)
+            ),
+            busParameter = CfuBusParameter(
+              CFU_VERSION = 0,
+              CFU_INTERFACE_ID_W = 0,
+              CFU_FUNCTION_ID_W = 10,
+              CFU_REORDER_ID_W = 0,
+              CFU_REQ_RESP_ID_W = 0,
+              CFU_STATE_INDEX_NUM = 0,
+              CFU_INPUTS = 2,
+              CFU_INPUT_DATA_W = 32,
+              CFU_OUTPUTS = 1,
+              CFU_OUTPUT_DATA_W = 32,
+              CFU_FLOW_REQ_READY_ALWAYS = false,
+              CFU_FLOW_RESP_READY_ALWAYS = false
+            )
+          )
+        )
       }
 
       // CPU configuration
