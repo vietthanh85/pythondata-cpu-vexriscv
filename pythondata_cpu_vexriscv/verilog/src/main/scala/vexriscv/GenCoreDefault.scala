@@ -362,9 +362,9 @@ class PerfCsrPlugin( val csrCount : Int ) extends Plugin[VexRiscv]{
       for (idx <- 0 until csrCount) {
 
           val cycleCounter = Reg(UInt(32 bits))
-          val enable =       Reg(UInt(32 bits))   // only the LSB is used
+          val enable       = Reg(Bool()) init(False)
 
-          when ( enable(0) ) {
+          when ( enable ) {
             cycleCounter := cycleCounter + 1
           }
 
