@@ -1,6 +1,6 @@
 // Generator : SpinalHDL v1.6.0    git head : 73c8d8e2b86b45646e9d0b2e729291f2b65e6be3
 // Component : VexRiscv
-// Git hash  : 6276bf628be9d0a58c0284dca83137b71ef29098
+// Git hash  : 8a2f5e6186f74eaedee45d1d39624c7b5f0fa87c
 
 
 `define EnvCtrlEnum_binary_sequential_type [1:0]
@@ -160,6 +160,8 @@ module VexRiscv (
   wire       [31:0]   _zz_execute_SHIFT_RIGHT;
   wire       [32:0]   _zz_execute_SHIFT_RIGHT_1;
   wire       [32:0]   _zz_execute_SHIFT_RIGHT_2;
+  wire       [30:0]   _zz_decode_DO_EBREAK;
+  wire       [30:0]   _zz_decode_DO_EBREAK_1;
   wire       [31:0]   _zz_decode_FORMAL_PC_NEXT;
   wire       [2:0]    _zz_decode_FORMAL_PC_NEXT_1;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION;
@@ -1225,6 +1227,10 @@ module VexRiscv (
   reg                 DebugPlugin_debugUsed /* verilator public */ ;
   reg                 DebugPlugin_disableEbreak;
   wire                DebugPlugin_allowEBreak;
+  reg                 DebugPlugin_hardwareBreakpoints_0_valid;
+  reg        [30:0]   DebugPlugin_hardwareBreakpoints_0_pc;
+  reg                 DebugPlugin_hardwareBreakpoints_1_valid;
+  reg        [30:0]   DebugPlugin_hardwareBreakpoints_1_pc;
   reg        [31:0]   DebugPlugin_busReadDataReg;
   reg                 _zz_when_DebugPlugin_l244;
   wire                when_DebugPlugin_l244;
@@ -1568,6 +1574,8 @@ module VexRiscv (
   assign _zz_execute_SHIFT_RIGHT_1 = ($signed(_zz_execute_SHIFT_RIGHT_2) >>> execute_FullBarrelShifterPlugin_amplitude);
   assign _zz_execute_SHIFT_RIGHT = _zz_execute_SHIFT_RIGHT_1[31 : 0];
   assign _zz_execute_SHIFT_RIGHT_2 = {((execute_SHIFT_CTRL == `ShiftCtrlEnum_binary_sequential_SRA_1) && execute_FullBarrelShifterPlugin_reversed[31]),execute_FullBarrelShifterPlugin_reversed};
+  assign _zz_decode_DO_EBREAK = (decode_PC >>> 1);
+  assign _zz_decode_DO_EBREAK_1 = (decode_PC >>> 1);
   assign _zz_decode_FORMAL_PC_NEXT_1 = (decode_IS_RVC ? 3'b010 : 3'b100);
   assign _zz_decode_FORMAL_PC_NEXT = {29'd0, _zz_decode_FORMAL_PC_NEXT_1};
   assign _zz__zz_IBusCachedPlugin_jump_pcLoad_payload_1 = (_zz_IBusCachedPlugin_jump_pcLoad_payload - 4'b0001);
@@ -2713,7 +2721,7 @@ module VexRiscv (
   assign execute_REGFILE_WRITE_DATA = _zz_execute_REGFILE_WRITE_DATA;
   assign memory_MEMORY_STORE_DATA_RF = execute_to_memory_MEMORY_STORE_DATA_RF;
   assign execute_MEMORY_STORE_DATA_RF = _zz_execute_MEMORY_STORE_DATA_RF;
-  assign decode_DO_EBREAK = (((! DebugPlugin_haltIt) && (decode_IS_EBREAK || 1'b0)) && DebugPlugin_allowEBreak);
+  assign decode_DO_EBREAK = (((! DebugPlugin_haltIt) && (decode_IS_EBREAK || ((1'b0 || (DebugPlugin_hardwareBreakpoints_0_valid && (DebugPlugin_hardwareBreakpoints_0_pc == _zz_decode_DO_EBREAK))) || (DebugPlugin_hardwareBreakpoints_1_valid && (DebugPlugin_hardwareBreakpoints_1_pc == _zz_decode_DO_EBREAK_1))))) && DebugPlugin_allowEBreak);
   assign decode_CSR_READ_OPCODE = (decode_INSTRUCTION[13 : 7] != 7'h20);
   assign decode_CSR_WRITE_OPCODE = (! (((decode_INSTRUCTION[14 : 13] == 2'b01) && (decode_INSTRUCTION[19 : 15] == 5'h0)) || ((decode_INSTRUCTION[14 : 13] == 2'b11) && (decode_INSTRUCTION[19 : 15] == 5'h0))));
   assign decode_PREDICTION_HAD_BRANCHED2 = IBusCachedPlugin_decodePrediction_cmd_hadBranch;
@@ -6071,6 +6079,22 @@ module VexRiscv (
       DebugPlugin_busReadDataReg <= _zz_decode_RS2_2;
     end
     _zz_when_DebugPlugin_l244 <= debug_bus_cmd_payload_address[2];
+    if(debug_bus_cmd_valid) begin
+      case(switch_DebugPlugin_l256)
+        6'h10 : begin
+          if(debug_bus_cmd_payload_wr) begin
+            DebugPlugin_hardwareBreakpoints_0_pc <= debug_bus_cmd_payload_data[31 : 1];
+          end
+        end
+        6'h11 : begin
+          if(debug_bus_cmd_payload_wr) begin
+            DebugPlugin_hardwareBreakpoints_1_pc <= debug_bus_cmd_payload_data[31 : 1];
+          end
+        end
+        default : begin
+        end
+      endcase
+    end
     if(when_DebugPlugin_l284) begin
       DebugPlugin_busReadDataReg <= execute_PC;
     end
@@ -6086,6 +6110,8 @@ module VexRiscv (
       DebugPlugin_haltedByBreak <= 1'b0;
       DebugPlugin_debugUsed <= 1'b0;
       DebugPlugin_disableEbreak <= 1'b0;
+      DebugPlugin_hardwareBreakpoints_0_valid <= 1'b0;
+      DebugPlugin_hardwareBreakpoints_1_valid <= 1'b0;
       _zz_3 <= 1'b0;
     end else begin
       if(when_DebugPlugin_l225) begin
@@ -6123,6 +6149,16 @@ module VexRiscv (
               if(when_DebugPlugin_l264_1) begin
                 DebugPlugin_disableEbreak <= 1'b0;
               end
+            end
+          end
+          6'h10 : begin
+            if(debug_bus_cmd_payload_wr) begin
+              DebugPlugin_hardwareBreakpoints_0_valid <= debug_bus_cmd_payload_data[0];
+            end
+          end
+          6'h11 : begin
+            if(debug_bus_cmd_payload_wr) begin
+              DebugPlugin_hardwareBreakpoints_1_valid <= debug_bus_cmd_payload_data[0];
             end
           end
           default : begin
