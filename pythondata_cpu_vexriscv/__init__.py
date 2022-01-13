@@ -4,11 +4,11 @@ data_location = os.path.join(__dir__, "verilog")
 src = "https://github.com/SpinalHDL/VexRISCV.git"
 
 # Module version
-version_str = "1.0.1.post383"
-version_tuple = (1, 0, 1, 383)
+version_str = "1.0.1.post385"
+version_tuple = (1, 0, 1, 385)
 try:
     from packaging.version import Version as V
-    pversion = V("1.0.1.post383")
+    pversion = V("1.0.1.post385")
 except ImportError:
     pass
 
@@ -27,11 +27,11 @@ data_git_msg = """\
 """
 
 # Tool version info
-tool_version_str = "0.0.post118"
-tool_version_tuple = (0, 0, 118)
+tool_version_str = "0.0.post120"
+tool_version_tuple = (0, 0, 120)
 try:
     from packaging.version import Version as V
-    ptool_version = V("0.0.post118")
+    ptool_version = V("0.0.post120")
 except ImportError:
     pass
 
