@@ -21,6 +21,7 @@ object SpinalConfig extends spinal.core.SpinalConfig(
 
 case class ArgConfig(
   debug : Boolean = false,
+  hardwareBreakpointCount : Int = 0,
   iCacheSize : Int = 4096,
   dCacheSize : Int = 4096,
   pmpRegions : Int = 0,
@@ -58,6 +59,7 @@ object GenCoreDefault{
     val parser = new scopt.OptionParser[ArgConfig]("VexRiscvGen") {
       //  ex :-d    or   --debug
       opt[Unit]('d', "debug")    action { (_, c) => c.copy(debug = true)   } text("Enable debug")
+      opt[Int]("hardwareBreakpointCount")     action { (v, c) => c.copy(hardwareBreakpointCount = v) } text("Set number of available hardware breakpoints, defaults to 0")
       // ex : -iCacheSize=XXX
       opt[Int]("iCacheSize")     action { (v, c) => c.copy(iCacheSize = v) } text("Set instruction cache size, 0 mean no cache")
       // ex : -dCacheSize=XXX
@@ -232,7 +234,10 @@ object GenCoreDefault{
 
       // Add in the Debug plugin, if requested
       if(argConfig.debug) {
-        plugins += new DebugPlugin(ClockDomain.current.clone(reset = Bool().setName("debugReset")))
+        plugins += new DebugPlugin(
+          debugClockDomain = ClockDomain.current.clone(reset = Bool().setName("debugReset")),
+          hardwareBreakpointCount = argConfig.hardwareBreakpointCount 
+        )
       }
 
       // CFU plugin/port

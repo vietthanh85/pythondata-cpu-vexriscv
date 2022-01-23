@@ -55,8 +55,8 @@ module VexRiscv (
   input      [31:0]   debug_bus_cmd_payload_data,
   output reg [31:0]   debug_bus_rsp_data,
   output              debug_resetOut,
-  output              iBusWishbone_CYC,
-  output              iBusWishbone_STB,
+  output reg          iBusWishbone_CYC,
+  output reg          iBusWishbone_STB,
   input               iBusWishbone_ACK,
   output              iBusWishbone_WE,
   output     [29:0]   iBusWishbone_ADR,
@@ -81,14 +81,31 @@ module VexRiscv (
   input               reset,
   input               debugReset
 );
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_ready;
+  wire                IBusCachedPlugin_cache_io_flush;
+  wire                IBusCachedPlugin_cache_io_cpu_prefetch_isValid;
+  wire                IBusCachedPlugin_cache_io_cpu_fetch_isValid;
+  wire                IBusCachedPlugin_cache_io_cpu_fetch_isStuck;
+  wire                IBusCachedPlugin_cache_io_cpu_fetch_isRemoved;
+  wire                IBusCachedPlugin_cache_io_cpu_decode_isValid;
+  wire                IBusCachedPlugin_cache_io_cpu_decode_isStuck;
+  wire                IBusCachedPlugin_cache_io_cpu_decode_isUser;
+  reg                 IBusCachedPlugin_cache_io_cpu_fill_valid;
   reg        [31:0]   _zz_RegFilePlugin_regFile_port0;
   reg        [31:0]   _zz_RegFilePlugin_regFile_port1;
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_c_io_push_ready;
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_valid;
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_payload_error;
-  wire       [31:0]   IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_payload_inst;
-  wire       [0:0]    IBusSimplePlugin_rspJoin_rspBuffer_c_io_occupancy;
+  wire                IBusCachedPlugin_cache_io_cpu_prefetch_haltIt;
+  wire       [31:0]   IBusCachedPlugin_cache_io_cpu_fetch_data;
+  wire       [31:0]   IBusCachedPlugin_cache_io_cpu_fetch_physicalAddress;
+  wire                IBusCachedPlugin_cache_io_cpu_decode_error;
+  wire                IBusCachedPlugin_cache_io_cpu_decode_mmuRefilling;
+  wire                IBusCachedPlugin_cache_io_cpu_decode_mmuException;
+  wire       [31:0]   IBusCachedPlugin_cache_io_cpu_decode_data;
+  wire                IBusCachedPlugin_cache_io_cpu_decode_cacheMiss;
+  wire       [31:0]   IBusCachedPlugin_cache_io_cpu_decode_physicalAddress;
+  wire                IBusCachedPlugin_cache_io_mem_cmd_valid;
+  wire       [31:0]   IBusCachedPlugin_cache_io_mem_cmd_payload_address;
+  wire       [2:0]    IBusCachedPlugin_cache_io_mem_cmd_payload_size;
+  wire       [30:0]   _zz_decode_DO_EBREAK;
+  wire       [30:0]   _zz_decode_DO_EBREAK_1;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_1;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_2;
@@ -107,132 +124,173 @@ module VexRiscv (
   wire                _zz_decode_LEGAL_INSTRUCTION_15;
   wire       [0:0]    _zz_decode_LEGAL_INSTRUCTION_16;
   wire       [0:0]    _zz_decode_LEGAL_INSTRUCTION_17;
-  wire       [1:0]    _zz_IBusSimplePlugin_jump_pcLoad_payload_1;
-  wire       [1:0]    _zz_IBusSimplePlugin_jump_pcLoad_payload_2;
-  wire       [31:0]   _zz_IBusSimplePlugin_fetchPc_pc;
-  wire       [2:0]    _zz_IBusSimplePlugin_fetchPc_pc_1;
-  wire       [2:0]    _zz_IBusSimplePlugin_pending_next;
-  wire       [2:0]    _zz_IBusSimplePlugin_pending_next_1;
-  wire       [0:0]    _zz_IBusSimplePlugin_pending_next_2;
-  wire       [2:0]    _zz_IBusSimplePlugin_pending_next_3;
-  wire       [0:0]    _zz_IBusSimplePlugin_pending_next_4;
-  wire       [2:0]    _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter;
-  wire       [0:0]    _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_1;
-  wire       [2:0]    _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_2;
-  wire       [0:0]    _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_3;
+  wire       [2:0]    _zz__zz_IBusCachedPlugin_jump_pcLoad_payload_1;
+  reg        [31:0]   _zz_IBusCachedPlugin_jump_pcLoad_payload_4;
+  wire       [1:0]    _zz_IBusCachedPlugin_jump_pcLoad_payload_5;
+  wire       [31:0]   _zz_IBusCachedPlugin_fetchPc_pc;
+  wire       [2:0]    _zz_IBusCachedPlugin_fetchPc_pc_1;
+  wire       [11:0]   _zz__zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+  wire       [31:0]   _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_2;
+  wire       [19:0]   _zz__zz_2;
+  wire       [11:0]   _zz__zz_4;
+  wire       [31:0]   _zz__zz_6;
+  wire       [31:0]   _zz__zz_6_1;
+  wire       [19:0]   _zz__zz_IBusCachedPlugin_predictionJumpInterface_payload;
+  wire       [11:0]   _zz__zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+  wire                _zz_IBusCachedPlugin_predictionJumpInterface_payload_4;
+  wire                _zz_IBusCachedPlugin_predictionJumpInterface_payload_5;
+  wire                _zz_IBusCachedPlugin_predictionJumpInterface_payload_6;
   wire       [2:0]    _zz_DBusSimplePlugin_memoryExceptionPort_payload_code;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_1;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_2;
-  wire                _zz__zz_decode_ENV_CTRL_2_3;
-  wire       [1:0]    _zz__zz_decode_ENV_CTRL_2_4;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_5;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_6;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_7;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_8;
-  wire       [1:0]    _zz__zz_decode_ENV_CTRL_2_9;
-  wire                _zz__zz_decode_ENV_CTRL_2_10;
-  wire                _zz__zz_decode_ENV_CTRL_2_11;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_12;
-  wire                _zz__zz_decode_ENV_CTRL_2_13;
-  wire       [20:0]   _zz__zz_decode_ENV_CTRL_2_14;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_15;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_16;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_17;
-  wire                _zz__zz_decode_ENV_CTRL_2_18;
-  wire                _zz__zz_decode_ENV_CTRL_2_19;
-  wire                _zz__zz_decode_ENV_CTRL_2_20;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_21;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_22;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_23;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_24;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_25;
-  wire       [17:0]   _zz__zz_decode_ENV_CTRL_2_26;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_27;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_28;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_29;
-  wire                _zz__zz_decode_ENV_CTRL_2_30;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_31;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_32;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_33;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_34;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_35;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_36;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_37;
-  wire       [14:0]   _zz__zz_decode_ENV_CTRL_2_38;
-  wire       [1:0]    _zz__zz_decode_ENV_CTRL_2_39;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_40;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_41;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_42;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_43;
-  wire       [1:0]    _zz__zz_decode_ENV_CTRL_2_44;
-  wire                _zz__zz_decode_ENV_CTRL_2_45;
-  wire                _zz__zz_decode_ENV_CTRL_2_46;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_47;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_48;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_49;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_50;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_51;
-  wire                _zz__zz_decode_ENV_CTRL_2_52;
-  wire       [11:0]   _zz__zz_decode_ENV_CTRL_2_53;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_54;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_55;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_56;
-  wire                _zz__zz_decode_ENV_CTRL_2_57;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_58;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_59;
-  wire       [4:0]    _zz__zz_decode_ENV_CTRL_2_60;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_61;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_62;
-  wire                _zz__zz_decode_ENV_CTRL_2_63;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_64;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_65;
-  wire       [1:0]    _zz__zz_decode_ENV_CTRL_2_66;
-  wire                _zz__zz_decode_ENV_CTRL_2_67;
-  wire                _zz__zz_decode_ENV_CTRL_2_68;
-  wire       [8:0]    _zz__zz_decode_ENV_CTRL_2_69;
-  wire       [1:0]    _zz__zz_decode_ENV_CTRL_2_70;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_71;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_72;
-  wire       [1:0]    _zz__zz_decode_ENV_CTRL_2_73;
-  wire                _zz__zz_decode_ENV_CTRL_2_74;
-  wire                _zz__zz_decode_ENV_CTRL_2_75;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_76;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_77;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_78;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_79;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_80;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_81;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_82;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_83;
-  wire       [5:0]    _zz__zz_decode_ENV_CTRL_2_84;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_85;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_86;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_87;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_88;
-  wire                _zz__zz_decode_ENV_CTRL_2_89;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_90;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_91;
-  wire       [2:0]    _zz__zz_decode_ENV_CTRL_2_92;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_93;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_94;
-  wire                _zz__zz_decode_ENV_CTRL_2_95;
-  wire                _zz__zz_decode_ENV_CTRL_2_96;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_97;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_98;
-  wire       [31:0]   _zz__zz_decode_ENV_CTRL_2_99;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_100;
-  wire       [2:0]    _zz__zz_decode_ENV_CTRL_2_101;
-  wire                _zz__zz_decode_ENV_CTRL_2_102;
-  wire                _zz__zz_decode_ENV_CTRL_2_103;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_104;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_105;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_106;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_107;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_108;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_109;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_110;
-  wire       [0:0]    _zz__zz_decode_ENV_CTRL_2_111;
+  wire       [31:0]   _zz__zz_decode_IS_DIV;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_1;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_2;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_3;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_4;
+  wire       [2:0]    _zz__zz_decode_IS_DIV_5;
+  wire       [2:0]    _zz__zz_decode_IS_DIV_6;
+  wire                _zz__zz_decode_IS_DIV_7;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_8;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_9;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_10;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_11;
+  wire       [25:0]   _zz__zz_decode_IS_DIV_12;
+  wire                _zz__zz_decode_IS_DIV_13;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_14;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_15;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_16;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_17;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_18;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_19;
+  wire                _zz__zz_decode_IS_DIV_20;
+  wire                _zz__zz_decode_IS_DIV_21;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_22;
+  wire                _zz__zz_decode_IS_DIV_23;
+  wire       [21:0]   _zz__zz_decode_IS_DIV_24;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_25;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_26;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_27;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_28;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_29;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_30;
+  wire                _zz__zz_decode_IS_DIV_31;
+  wire                _zz__zz_decode_IS_DIV_32;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_33;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_34;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_35;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_36;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_37;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_38;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_39;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_40;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_41;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_42;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_43;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_44;
+  wire                _zz__zz_decode_IS_DIV_45;
+  wire                _zz__zz_decode_IS_DIV_46;
+  wire       [18:0]   _zz__zz_decode_IS_DIV_47;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_48;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_49;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_50;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_51;
+  wire                _zz__zz_decode_IS_DIV_52;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_53;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_54;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_55;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_56;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_57;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_58;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_59;
+  wire       [15:0]   _zz__zz_decode_IS_DIV_60;
+  wire                _zz__zz_decode_IS_DIV_61;
+  wire                _zz__zz_decode_IS_DIV_62;
+  wire                _zz__zz_decode_IS_DIV_63;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_64;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_65;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_66;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_67;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_68;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_69;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_70;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_71;
+  wire       [13:0]   _zz__zz_decode_IS_DIV_72;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_73;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_74;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_75;
+  wire                _zz__zz_decode_IS_DIV_76;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_77;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_78;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_79;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_80;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_81;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_82;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_83;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_84;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_85;
+  wire       [10:0]   _zz__zz_decode_IS_DIV_86;
+  wire       [5:0]    _zz__zz_decode_IS_DIV_87;
+  wire                _zz__zz_decode_IS_DIV_88;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_89;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_90;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_91;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_92;
+  wire       [2:0]    _zz__zz_decode_IS_DIV_93;
+  wire                _zz__zz_decode_IS_DIV_94;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_95;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_96;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_97;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_98;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_99;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_100;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_101;
+  wire       [5:0]    _zz__zz_decode_IS_DIV_102;
+  wire                _zz__zz_decode_IS_DIV_103;
+  wire                _zz__zz_decode_IS_DIV_104;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_105;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_106;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_107;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_108;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_109;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_110;
+  wire       [7:0]    _zz__zz_decode_IS_DIV_111;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_112;
+  wire                _zz__zz_decode_IS_DIV_113;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_114;
+  wire                _zz__zz_decode_IS_DIV_115;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_116;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_117;
+  wire                _zz__zz_decode_IS_DIV_118;
+  wire                _zz__zz_decode_IS_DIV_119;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_120;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_121;
+  wire       [3:0]    _zz__zz_decode_IS_DIV_122;
+  wire                _zz__zz_decode_IS_DIV_123;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_124;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_125;
+  wire       [1:0]    _zz__zz_decode_IS_DIV_126;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_127;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_128;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_129;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_130;
+  wire       [3:0]    _zz__zz_decode_IS_DIV_131;
+  wire       [4:0]    _zz__zz_decode_IS_DIV_132;
+  wire                _zz__zz_decode_IS_DIV_133;
+  wire                _zz__zz_decode_IS_DIV_134;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_135;
+  wire       [2:0]    _zz__zz_decode_IS_DIV_136;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_137;
+  wire       [31:0]   _zz__zz_decode_IS_DIV_138;
+  wire                _zz__zz_decode_IS_DIV_139;
+  wire                _zz__zz_decode_IS_DIV_140;
+  wire       [2:0]    _zz__zz_decode_IS_DIV_141;
+  wire       [2:0]    _zz__zz_decode_IS_DIV_142;
+  wire                _zz__zz_decode_IS_DIV_143;
+  wire                _zz__zz_decode_IS_DIV_144;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_145;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_146;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_147;
+  wire       [0:0]    _zz__zz_decode_IS_DIV_148;
+  wire                _zz__zz_decode_IS_DIV_149;
   wire                _zz_RegFilePlugin_regFile_port;
   wire                _zz_decode_RegFilePlugin_rs1Data;
   wire                _zz_RegFilePlugin_regFile_port_1;
@@ -248,13 +306,49 @@ module VexRiscv (
   wire       [31:0]   _zz_execute_SrcPlugin_addSub_4;
   wire       [31:0]   _zz_execute_SrcPlugin_addSub_5;
   wire       [31:0]   _zz_execute_SrcPlugin_addSub_6;
-  wire       [31:0]   _zz__zz_execute_to_memory_REGFILE_WRITE_DATA_1;
-  wire       [32:0]   _zz__zz_execute_to_memory_REGFILE_WRITE_DATA_1_1;
-  wire       [19:0]   _zz__zz_execute_BranchPlugin_branch_src2;
+  wire       [31:0]   _zz__zz_decode_RS2_3;
+  wire       [32:0]   _zz__zz_decode_RS2_3_1;
+  wire       [19:0]   _zz__zz_execute_BranchPlugin_missAlignedTarget_2;
+  wire       [11:0]   _zz__zz_execute_BranchPlugin_missAlignedTarget_4;
+  wire       [31:0]   _zz__zz_execute_BranchPlugin_missAlignedTarget_6;
+  wire       [31:0]   _zz__zz_execute_BranchPlugin_missAlignedTarget_6_1;
+  wire       [31:0]   _zz__zz_execute_BranchPlugin_missAlignedTarget_6_2;
+  wire       [19:0]   _zz__zz_execute_BranchPlugin_branch_src2_2;
   wire       [11:0]   _zz__zz_execute_BranchPlugin_branch_src2_4;
+  wire                _zz_execute_BranchPlugin_branch_src2_6;
+  wire                _zz_execute_BranchPlugin_branch_src2_7;
+  wire                _zz_execute_BranchPlugin_branch_src2_8;
+  wire       [2:0]    _zz_execute_BranchPlugin_branch_src2_9;
   wire       [1:0]    _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1;
   wire       [1:0]    _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1_1;
+  wire       [1:0]    _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3;
+  wire       [1:0]    _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3_1;
   wire                _zz_when;
+  wire                _zz_when_1;
+  wire       [5:0]    _zz_memory_MulDivIterativePlugin_mul_counter_valueNext;
+  wire       [0:0]    _zz_memory_MulDivIterativePlugin_mul_counter_valueNext_1;
+  wire       [33:0]   _zz_memory_MulDivIterativePlugin_accumulator;
+  wire       [33:0]   _zz_memory_MulDivIterativePlugin_accumulator_1;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_accumulator_2;
+  wire       [33:0]   _zz_memory_MulDivIterativePlugin_accumulator_3;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_accumulator_4;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_accumulator_5;
+  wire       [5:0]    _zz_memory_MulDivIterativePlugin_div_counter_valueNext;
+  wire       [0:0]    _zz_memory_MulDivIterativePlugin_div_counter_valueNext_1;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_div_stage_0_remainderMinusDenominator;
+  wire       [31:0]   _zz_memory_MulDivIterativePlugin_div_stage_0_outRemainder;
+  wire       [31:0]   _zz_memory_MulDivIterativePlugin_div_stage_0_outRemainder_1;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_div_stage_0_outNumerator;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_div_result_1;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_div_result_2;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_div_result_3;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_div_result_4;
+  wire       [0:0]    _zz_memory_MulDivIterativePlugin_div_result_5;
+  wire       [32:0]   _zz_memory_MulDivIterativePlugin_rs1_3;
+  wire       [0:0]    _zz_memory_MulDivIterativePlugin_rs1_4;
+  wire       [31:0]   _zz_memory_MulDivIterativePlugin_rs2;
+  wire       [0:0]    _zz_memory_MulDivIterativePlugin_rs2_1;
+  wire       [26:0]   _zz_iBusWishbone_ADR_1;
   wire       [31:0]   memory_MEMORY_READ_DATA;
   wire       [31:0]   execute_BRANCH_CALC;
   wire                execute_BRANCH_DO;
@@ -265,9 +359,12 @@ module VexRiscv (
   wire                decode_DO_EBREAK;
   wire                decode_CSR_READ_OPCODE;
   wire                decode_CSR_WRITE_OPCODE;
+  wire                decode_PREDICTION_HAD_BRANCHED2;
   wire                decode_SRC2_FORCE_ZERO;
-  wire       [31:0]   decode_RS2;
-  wire       [31:0]   decode_RS1;
+  wire                decode_IS_DIV;
+  wire                decode_IS_RS2_SIGNED;
+  wire                decode_IS_RS1_SIGNED;
+  wire                decode_IS_MUL;
   wire       `EnvCtrlEnum_binary_sequential_type _zz_memory_to_writeBack_ENV_CTRL;
   wire       `EnvCtrlEnum_binary_sequential_type _zz_memory_to_writeBack_ENV_CTRL_1;
   wire       `EnvCtrlEnum_binary_sequential_type _zz_execute_to_memory_ENV_CTRL;
@@ -277,8 +374,6 @@ module VexRiscv (
   wire       `EnvCtrlEnum_binary_sequential_type _zz_decode_to_execute_ENV_CTRL;
   wire       `EnvCtrlEnum_binary_sequential_type _zz_decode_to_execute_ENV_CTRL_1;
   wire                decode_IS_CSR;
-  wire       `BranchCtrlEnum_binary_sequential_type decode_BRANCH_CTRL;
-  wire       `BranchCtrlEnum_binary_sequential_type _zz_decode_BRANCH_CTRL;
   wire       `BranchCtrlEnum_binary_sequential_type _zz_decode_to_execute_BRANCH_CTRL;
   wire       `BranchCtrlEnum_binary_sequential_type _zz_decode_to_execute_BRANCH_CTRL_1;
   wire       `ShiftCtrlEnum_binary_sequential_type decode_SHIFT_CTRL;
@@ -314,6 +409,12 @@ module VexRiscv (
   wire       [31:0]   memory_PC;
   wire                execute_DO_EBREAK;
   wire                decode_IS_EBREAK;
+  wire                execute_IS_RS1_SIGNED;
+  wire                execute_IS_DIV;
+  wire                execute_IS_MUL;
+  wire                execute_IS_RS2_SIGNED;
+  wire                memory_IS_DIV;
+  wire                memory_IS_MUL;
   wire                execute_CSR_READ_OPCODE;
   wire                execute_CSR_WRITE_OPCODE;
   wire                execute_IS_CSR;
@@ -326,18 +427,23 @@ module VexRiscv (
   wire       [31:0]   memory_BRANCH_CALC;
   wire                memory_BRANCH_DO;
   wire       [31:0]   execute_PC;
+  wire                execute_PREDICTION_HAD_BRANCHED2;
   wire       [31:0]   execute_RS1;
+  wire                execute_BRANCH_COND_RESULT;
   wire       `BranchCtrlEnum_binary_sequential_type execute_BRANCH_CTRL;
   wire       `BranchCtrlEnum_binary_sequential_type _zz_execute_BRANCH_CTRL;
   wire                decode_RS2_USE;
   wire                decode_RS1_USE;
   wire                execute_REGFILE_WRITE_VALID;
   wire                execute_BYPASSABLE_EXECUTE_STAGE;
+  reg        [31:0]   _zz_decode_RS2;
   wire                memory_REGFILE_WRITE_VALID;
   wire       [31:0]   memory_INSTRUCTION;
   wire                memory_BYPASSABLE_MEMORY_STAGE;
   wire                writeBack_REGFILE_WRITE_VALID;
-  reg        [31:0]   _zz_execute_to_memory_REGFILE_WRITE_DATA;
+  reg        [31:0]   decode_RS2;
+  reg        [31:0]   decode_RS1;
+  reg        [31:0]   _zz_decode_RS2_1;
   wire       `ShiftCtrlEnum_binary_sequential_type execute_SHIFT_CTRL;
   wire       `ShiftCtrlEnum_binary_sequential_type _zz_execute_SHIFT_CTRL;
   wire                execute_SRC_LESS_UNSIGNED;
@@ -365,14 +471,14 @@ module VexRiscv (
   reg                 decode_REGFILE_WRITE_VALID;
   wire                decode_LEGAL_INSTRUCTION;
   wire       `EnvCtrlEnum_binary_sequential_type _zz_decode_ENV_CTRL_1;
-  wire       `BranchCtrlEnum_binary_sequential_type _zz_decode_BRANCH_CTRL_1;
+  wire       `BranchCtrlEnum_binary_sequential_type _zz_decode_BRANCH_CTRL;
   wire       `ShiftCtrlEnum_binary_sequential_type _zz_decode_SHIFT_CTRL_1;
   wire       `AluBitwiseCtrlEnum_binary_sequential_type _zz_decode_ALU_BITWISE_CTRL_1;
   wire       `Src2CtrlEnum_binary_sequential_type _zz_decode_SRC2_CTRL_1;
   wire       `AluCtrlEnum_binary_sequential_type _zz_decode_ALU_CTRL_1;
   wire       `Src1CtrlEnum_binary_sequential_type _zz_decode_SRC1_CTRL_1;
   wire                writeBack_MEMORY_STORE;
-  reg        [31:0]   _zz_lastStageRegFileWrite_payload_data;
+  reg        [31:0]   _zz_decode_RS2_2;
   wire                writeBack_MEMORY_ENABLE;
   wire       [1:0]    writeBack_MEMORY_ADDRESS_LOW;
   wire       [31:0]   writeBack_MEMORY_READ_DATA;
@@ -386,9 +492,17 @@ module VexRiscv (
   wire                execute_MEMORY_STORE;
   wire                execute_MEMORY_ENABLE;
   wire                execute_ALIGNEMENT_FAULT;
-  reg        [31:0]   _zz_memory_to_writeBack_FORMAL_PC_NEXT;
-  wire       [31:0]   decode_PC;
+  wire                decode_FLUSH_ALL;
+  reg                 IBusCachedPlugin_rsp_issueDetected_4;
+  reg                 IBusCachedPlugin_rsp_issueDetected_3;
+  reg                 IBusCachedPlugin_rsp_issueDetected_2;
+  reg                 IBusCachedPlugin_rsp_issueDetected_1;
+  wire       `BranchCtrlEnum_binary_sequential_type decode_BRANCH_CTRL;
+  wire       `BranchCtrlEnum_binary_sequential_type _zz_decode_BRANCH_CTRL_1;
   wire       [31:0]   decode_INSTRUCTION;
+  reg        [31:0]   _zz_memory_to_writeBack_FORMAL_PC_NEXT;
+  reg        [31:0]   _zz_decode_to_execute_FORMAL_PC_NEXT;
+  wire       [31:0]   decode_PC;
   wire       [31:0]   writeBack_PC;
   wire       [31:0]   writeBack_INSTRUCTION;
   reg                 decode_arbitration_haltItself;
@@ -439,18 +553,34 @@ module VexRiscv (
   wire       [31:0]   lastStagePc /* verilator public */ ;
   wire                lastStageIsValid /* verilator public */ ;
   wire                lastStageIsFiring /* verilator public */ ;
-  reg                 IBusSimplePlugin_fetcherHalt;
-  reg                 IBusSimplePlugin_incomingInstruction;
-  wire                IBusSimplePlugin_pcValids_0;
-  wire                IBusSimplePlugin_pcValids_1;
-  wire                IBusSimplePlugin_pcValids_2;
-  wire                IBusSimplePlugin_pcValids_3;
-  wire                iBus_cmd_valid;
-  reg                 iBus_cmd_ready;
-  wire       [31:0]   iBus_cmd_payload_pc;
-  wire                iBus_rsp_valid;
-  wire                iBus_rsp_payload_error;
-  wire       [31:0]   iBus_rsp_payload_inst;
+  reg                 IBusCachedPlugin_fetcherHalt;
+  reg                 IBusCachedPlugin_incomingInstruction;
+  wire                IBusCachedPlugin_predictionJumpInterface_valid;
+  (* keep , syn_keep *) wire       [31:0]   IBusCachedPlugin_predictionJumpInterface_payload /* synthesis syn_keep = 1 */ ;
+  reg                 IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+  wire                IBusCachedPlugin_decodePrediction_rsp_wasWrong;
+  wire                IBusCachedPlugin_pcValids_0;
+  wire                IBusCachedPlugin_pcValids_1;
+  wire                IBusCachedPlugin_pcValids_2;
+  wire                IBusCachedPlugin_pcValids_3;
+  reg                 IBusCachedPlugin_decodeExceptionPort_valid;
+  reg        [3:0]    IBusCachedPlugin_decodeExceptionPort_payload_code;
+  wire       [31:0]   IBusCachedPlugin_decodeExceptionPort_payload_badAddr;
+  wire                IBusCachedPlugin_mmuBus_cmd_0_isValid;
+  wire                IBusCachedPlugin_mmuBus_cmd_0_isStuck;
+  wire       [31:0]   IBusCachedPlugin_mmuBus_cmd_0_virtualAddress;
+  wire                IBusCachedPlugin_mmuBus_cmd_0_bypassTranslation;
+  wire       [31:0]   IBusCachedPlugin_mmuBus_rsp_physicalAddress;
+  wire                IBusCachedPlugin_mmuBus_rsp_isIoAccess;
+  wire                IBusCachedPlugin_mmuBus_rsp_isPaging;
+  wire                IBusCachedPlugin_mmuBus_rsp_allowRead;
+  wire                IBusCachedPlugin_mmuBus_rsp_allowWrite;
+  wire                IBusCachedPlugin_mmuBus_rsp_allowExecute;
+  wire                IBusCachedPlugin_mmuBus_rsp_exception;
+  wire                IBusCachedPlugin_mmuBus_rsp_refilling;
+  wire                IBusCachedPlugin_mmuBus_rsp_bypassTranslation;
+  wire                IBusCachedPlugin_mmuBus_end;
+  wire                IBusCachedPlugin_mmuBus_busy;
   reg                 DBusSimplePlugin_memoryExceptionPort_valid;
   reg        [3:0]    DBusSimplePlugin_memoryExceptionPort_payload_code;
   wire       [31:0]   DBusSimplePlugin_memoryExceptionPort_payload_badAddr;
@@ -485,113 +615,119 @@ module VexRiscv (
   reg                 CsrPlugin_allowInterrupts;
   reg                 CsrPlugin_allowException;
   reg                 CsrPlugin_allowEbreakException;
-  reg                 IBusSimplePlugin_injectionPort_valid;
-  reg                 IBusSimplePlugin_injectionPort_ready;
-  wire       [31:0]   IBusSimplePlugin_injectionPort_payload;
-  wire                IBusSimplePlugin_externalFlush;
-  wire                IBusSimplePlugin_jump_pcLoad_valid;
-  wire       [31:0]   IBusSimplePlugin_jump_pcLoad_payload;
-  wire       [1:0]    _zz_IBusSimplePlugin_jump_pcLoad_payload;
-  wire                IBusSimplePlugin_fetchPc_output_valid;
-  wire                IBusSimplePlugin_fetchPc_output_ready;
-  wire       [31:0]   IBusSimplePlugin_fetchPc_output_payload;
-  reg        [31:0]   IBusSimplePlugin_fetchPc_pcReg /* verilator public */ ;
-  reg                 IBusSimplePlugin_fetchPc_correction;
-  reg                 IBusSimplePlugin_fetchPc_correctionReg;
-  wire                IBusSimplePlugin_fetchPc_output_fire;
-  wire                IBusSimplePlugin_fetchPc_corrected;
-  reg                 IBusSimplePlugin_fetchPc_pcRegPropagate;
-  reg                 IBusSimplePlugin_fetchPc_booted;
-  reg                 IBusSimplePlugin_fetchPc_inc;
+  reg                 IBusCachedPlugin_injectionPort_valid;
+  reg                 IBusCachedPlugin_injectionPort_ready;
+  wire       [31:0]   IBusCachedPlugin_injectionPort_payload;
+  wire                IBusCachedPlugin_externalFlush;
+  wire                IBusCachedPlugin_jump_pcLoad_valid;
+  wire       [31:0]   IBusCachedPlugin_jump_pcLoad_payload;
+  wire       [2:0]    _zz_IBusCachedPlugin_jump_pcLoad_payload;
+  wire       [2:0]    _zz_IBusCachedPlugin_jump_pcLoad_payload_1;
+  wire                _zz_IBusCachedPlugin_jump_pcLoad_payload_2;
+  wire                _zz_IBusCachedPlugin_jump_pcLoad_payload_3;
+  wire                IBusCachedPlugin_fetchPc_output_valid;
+  wire                IBusCachedPlugin_fetchPc_output_ready;
+  wire       [31:0]   IBusCachedPlugin_fetchPc_output_payload;
+  reg        [31:0]   IBusCachedPlugin_fetchPc_pcReg /* verilator public */ ;
+  reg                 IBusCachedPlugin_fetchPc_correction;
+  reg                 IBusCachedPlugin_fetchPc_correctionReg;
+  wire                IBusCachedPlugin_fetchPc_output_fire;
+  wire                IBusCachedPlugin_fetchPc_corrected;
+  reg                 IBusCachedPlugin_fetchPc_pcRegPropagate;
+  reg                 IBusCachedPlugin_fetchPc_booted;
+  reg                 IBusCachedPlugin_fetchPc_inc;
   wire                when_Fetcher_l131;
-  wire                IBusSimplePlugin_fetchPc_output_fire_1;
+  wire                IBusCachedPlugin_fetchPc_output_fire_1;
   wire                when_Fetcher_l131_1;
-  reg        [31:0]   IBusSimplePlugin_fetchPc_pc;
-  reg                 IBusSimplePlugin_fetchPc_flushed;
+  reg        [31:0]   IBusCachedPlugin_fetchPc_pc;
+  wire                IBusCachedPlugin_fetchPc_redo_valid;
+  wire       [31:0]   IBusCachedPlugin_fetchPc_redo_payload;
+  reg                 IBusCachedPlugin_fetchPc_flushed;
   wire                when_Fetcher_l158;
-  wire                IBusSimplePlugin_iBusRsp_redoFetch;
-  wire                IBusSimplePlugin_iBusRsp_stages_0_input_valid;
-  wire                IBusSimplePlugin_iBusRsp_stages_0_input_ready;
-  wire       [31:0]   IBusSimplePlugin_iBusRsp_stages_0_input_payload;
-  wire                IBusSimplePlugin_iBusRsp_stages_0_output_valid;
-  wire                IBusSimplePlugin_iBusRsp_stages_0_output_ready;
-  wire       [31:0]   IBusSimplePlugin_iBusRsp_stages_0_output_payload;
-  reg                 IBusSimplePlugin_iBusRsp_stages_0_halt;
-  wire                IBusSimplePlugin_iBusRsp_stages_1_input_valid;
-  wire                IBusSimplePlugin_iBusRsp_stages_1_input_ready;
-  wire       [31:0]   IBusSimplePlugin_iBusRsp_stages_1_input_payload;
-  wire                IBusSimplePlugin_iBusRsp_stages_1_output_valid;
-  wire                IBusSimplePlugin_iBusRsp_stages_1_output_ready;
-  wire       [31:0]   IBusSimplePlugin_iBusRsp_stages_1_output_payload;
-  wire                IBusSimplePlugin_iBusRsp_stages_1_halt;
-  wire                _zz_IBusSimplePlugin_iBusRsp_stages_0_input_ready;
-  wire                _zz_IBusSimplePlugin_iBusRsp_stages_1_input_ready;
-  wire                IBusSimplePlugin_iBusRsp_flush;
-  wire                _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready;
-  wire                _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_1;
-  reg                 _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_2;
-  reg                 IBusSimplePlugin_iBusRsp_readyForError;
-  wire                IBusSimplePlugin_iBusRsp_output_valid;
-  wire                IBusSimplePlugin_iBusRsp_output_ready;
-  wire       [31:0]   IBusSimplePlugin_iBusRsp_output_payload_pc;
-  wire                IBusSimplePlugin_iBusRsp_output_payload_rsp_error;
-  wire       [31:0]   IBusSimplePlugin_iBusRsp_output_payload_rsp_inst;
-  wire                IBusSimplePlugin_iBusRsp_output_payload_isRvc;
-  wire                IBusSimplePlugin_injector_decodeInput_valid;
-  wire                IBusSimplePlugin_injector_decodeInput_ready;
-  wire       [31:0]   IBusSimplePlugin_injector_decodeInput_payload_pc;
-  wire                IBusSimplePlugin_injector_decodeInput_payload_rsp_error;
-  wire       [31:0]   IBusSimplePlugin_injector_decodeInput_payload_rsp_inst;
-  wire                IBusSimplePlugin_injector_decodeInput_payload_isRvc;
-  reg                 _zz_IBusSimplePlugin_injector_decodeInput_valid;
-  reg        [31:0]   _zz_IBusSimplePlugin_injector_decodeInput_payload_pc;
-  reg                 _zz_IBusSimplePlugin_injector_decodeInput_payload_rsp_error;
-  reg        [31:0]   _zz_IBusSimplePlugin_injector_decodeInput_payload_rsp_inst;
-  reg                 _zz_IBusSimplePlugin_injector_decodeInput_payload_isRvc;
+  reg                 IBusCachedPlugin_iBusRsp_redoFetch;
+  wire                IBusCachedPlugin_iBusRsp_stages_0_input_valid;
+  wire                IBusCachedPlugin_iBusRsp_stages_0_input_ready;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_stages_0_input_payload;
+  wire                IBusCachedPlugin_iBusRsp_stages_0_output_valid;
+  wire                IBusCachedPlugin_iBusRsp_stages_0_output_ready;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_stages_0_output_payload;
+  reg                 IBusCachedPlugin_iBusRsp_stages_0_halt;
+  wire                IBusCachedPlugin_iBusRsp_stages_1_input_valid;
+  wire                IBusCachedPlugin_iBusRsp_stages_1_input_ready;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_stages_1_input_payload;
+  wire                IBusCachedPlugin_iBusRsp_stages_1_output_valid;
+  wire                IBusCachedPlugin_iBusRsp_stages_1_output_ready;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_stages_1_output_payload;
+  reg                 IBusCachedPlugin_iBusRsp_stages_1_halt;
+  wire                IBusCachedPlugin_iBusRsp_stages_2_input_valid;
+  wire                IBusCachedPlugin_iBusRsp_stages_2_input_ready;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_stages_2_input_payload;
+  wire                IBusCachedPlugin_iBusRsp_stages_2_output_valid;
+  wire                IBusCachedPlugin_iBusRsp_stages_2_output_ready;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_stages_2_output_payload;
+  reg                 IBusCachedPlugin_iBusRsp_stages_2_halt;
+  wire                _zz_IBusCachedPlugin_iBusRsp_stages_0_input_ready;
+  wire                _zz_IBusCachedPlugin_iBusRsp_stages_1_input_ready;
+  wire                _zz_IBusCachedPlugin_iBusRsp_stages_2_input_ready;
+  wire                IBusCachedPlugin_iBusRsp_flush;
+  wire                _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready;
+  wire                _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_1;
+  reg                 _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_2;
+  wire                IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid;
+  wire                IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_ready;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_payload;
+  reg                 _zz_IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid;
+  reg        [31:0]   _zz_IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_payload;
+  reg                 IBusCachedPlugin_iBusRsp_readyForError;
+  wire                IBusCachedPlugin_iBusRsp_output_valid;
+  wire                IBusCachedPlugin_iBusRsp_output_ready;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_output_payload_pc;
+  wire                IBusCachedPlugin_iBusRsp_output_payload_rsp_error;
+  wire       [31:0]   IBusCachedPlugin_iBusRsp_output_payload_rsp_inst;
+  wire                IBusCachedPlugin_iBusRsp_output_payload_isRvc;
+  wire                when_Fetcher_l240;
   wire                when_Fetcher_l320;
-  reg                 IBusSimplePlugin_injector_nextPcCalc_valids_0;
+  reg                 IBusCachedPlugin_injector_nextPcCalc_valids_0;
   wire                when_Fetcher_l329;
-  reg                 IBusSimplePlugin_injector_nextPcCalc_valids_1;
+  reg                 IBusCachedPlugin_injector_nextPcCalc_valids_1;
   wire                when_Fetcher_l329_1;
-  reg                 IBusSimplePlugin_injector_nextPcCalc_valids_2;
+  reg                 IBusCachedPlugin_injector_nextPcCalc_valids_2;
   wire                when_Fetcher_l329_2;
-  reg                 IBusSimplePlugin_injector_nextPcCalc_valids_3;
+  reg                 IBusCachedPlugin_injector_nextPcCalc_valids_3;
   wire                when_Fetcher_l329_3;
-  reg                 IBusSimplePlugin_injector_nextPcCalc_valids_4;
+  reg                 IBusCachedPlugin_injector_nextPcCalc_valids_4;
   wire                when_Fetcher_l329_4;
-  reg        [31:0]   IBusSimplePlugin_injector_formal_rawInDecode;
-  wire                IBusSimplePlugin_cmd_valid;
-  wire                IBusSimplePlugin_cmd_ready;
-  wire       [31:0]   IBusSimplePlugin_cmd_payload_pc;
-  wire                IBusSimplePlugin_pending_inc;
-  wire                IBusSimplePlugin_pending_dec;
-  reg        [2:0]    IBusSimplePlugin_pending_value;
-  wire       [2:0]    IBusSimplePlugin_pending_next;
-  wire                IBusSimplePlugin_cmdFork_canEmit;
-  wire                when_IBusSimplePlugin_l304;
-  wire                IBusSimplePlugin_cmd_fire;
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_output_valid;
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_output_ready;
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_output_payload_error;
-  wire       [31:0]   IBusSimplePlugin_rspJoin_rspBuffer_output_payload_inst;
-  reg        [2:0]    IBusSimplePlugin_rspJoin_rspBuffer_discardCounter;
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_flush;
-  wire                IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_fire;
-  wire       [31:0]   IBusSimplePlugin_rspJoin_fetchRsp_pc;
-  reg                 IBusSimplePlugin_rspJoin_fetchRsp_rsp_error;
-  wire       [31:0]   IBusSimplePlugin_rspJoin_fetchRsp_rsp_inst;
-  wire                IBusSimplePlugin_rspJoin_fetchRsp_isRvc;
-  wire                when_IBusSimplePlugin_l375;
-  wire                IBusSimplePlugin_rspJoin_join_valid;
-  wire                IBusSimplePlugin_rspJoin_join_ready;
-  wire       [31:0]   IBusSimplePlugin_rspJoin_join_payload_pc;
-  wire                IBusSimplePlugin_rspJoin_join_payload_rsp_error;
-  wire       [31:0]   IBusSimplePlugin_rspJoin_join_payload_rsp_inst;
-  wire                IBusSimplePlugin_rspJoin_join_payload_isRvc;
-  wire                IBusSimplePlugin_rspJoin_exceptionDetected;
-  wire                IBusSimplePlugin_rspJoin_join_fire;
-  wire                IBusSimplePlugin_rspJoin_join_fire_1;
-  wire                _zz_IBusSimplePlugin_iBusRsp_output_valid;
+  wire                _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+  reg        [18:0]   _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1;
+  wire                _zz_2;
+  reg        [10:0]   _zz_3;
+  wire                _zz_4;
+  reg        [18:0]   _zz_5;
+  reg                 _zz_6;
+  wire                _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+  reg        [10:0]   _zz_IBusCachedPlugin_predictionJumpInterface_payload_1;
+  wire                _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+  reg        [18:0]   _zz_IBusCachedPlugin_predictionJumpInterface_payload_3;
+  wire                iBus_cmd_valid;
+  wire                iBus_cmd_ready;
+  reg        [31:0]   iBus_cmd_payload_address;
+  wire       [2:0]    iBus_cmd_payload_size;
+  wire                iBus_rsp_valid;
+  wire       [31:0]   iBus_rsp_payload_data;
+  wire                iBus_rsp_payload_error;
+  wire       [31:0]   _zz_IBusCachedPlugin_rspCounter;
+  reg        [31:0]   IBusCachedPlugin_rspCounter;
+  wire                IBusCachedPlugin_s0_tightlyCoupledHit;
+  reg                 IBusCachedPlugin_s1_tightlyCoupledHit;
+  reg                 IBusCachedPlugin_s2_tightlyCoupledHit;
+  wire                IBusCachedPlugin_rsp_iBusRspOutputHalt;
+  wire                IBusCachedPlugin_rsp_issueDetected;
+  reg                 IBusCachedPlugin_rsp_redoFetch;
+  wire                when_IBusCachedPlugin_l239;
+  wire                when_IBusCachedPlugin_l244;
+  wire                when_IBusCachedPlugin_l250;
+  wire                when_IBusCachedPlugin_l256;
+  wire                when_IBusCachedPlugin_l267;
   wire                dBus_cmd_valid;
   wire                dBus_cmd_ready;
   wire                dBus_cmd_payload_wr;
@@ -618,18 +754,20 @@ module VexRiscv (
   reg        [31:0]   _zz_writeBack_DBusSimplePlugin_rspFormated_3;
   reg        [31:0]   writeBack_DBusSimplePlugin_rspFormated;
   wire                when_DBusSimplePlugin_l558;
-  wire       [26:0]   _zz_decode_ENV_CTRL_2;
-  wire                _zz_decode_ENV_CTRL_3;
-  wire                _zz_decode_ENV_CTRL_4;
-  wire                _zz_decode_ENV_CTRL_5;
-  wire                _zz_decode_ENV_CTRL_6;
+  wire       [31:0]   _zz_decode_IS_DIV;
+  wire                _zz_decode_IS_DIV_1;
+  wire                _zz_decode_IS_DIV_2;
+  wire                _zz_decode_IS_DIV_3;
+  wire                _zz_decode_IS_DIV_4;
+  wire                _zz_decode_IS_DIV_5;
+  wire                _zz_decode_IS_DIV_6;
   wire       `Src1CtrlEnum_binary_sequential_type _zz_decode_SRC1_CTRL_2;
   wire       `AluCtrlEnum_binary_sequential_type _zz_decode_ALU_CTRL_2;
   wire       `Src2CtrlEnum_binary_sequential_type _zz_decode_SRC2_CTRL_2;
   wire       `AluBitwiseCtrlEnum_binary_sequential_type _zz_decode_ALU_BITWISE_CTRL_2;
   wire       `ShiftCtrlEnum_binary_sequential_type _zz_decode_SHIFT_CTRL_2;
   wire       `BranchCtrlEnum_binary_sequential_type _zz_decode_BRANCH_CTRL_2;
-  wire       `EnvCtrlEnum_binary_sequential_type _zz_decode_ENV_CTRL_7;
+  wire       `EnvCtrlEnum_binary_sequential_type _zz_decode_ENV_CTRL_2;
   wire                when_RegFilePlugin_l63;
   wire       [4:0]    decode_RegFilePlugin_regFileReadAddress1;
   wire       [4:0]    decode_RegFilePlugin_regFileReadAddress2;
@@ -638,7 +776,7 @@ module VexRiscv (
   reg                 lastStageRegFileWrite_valid /* verilator public */ ;
   reg        [4:0]    lastStageRegFileWrite_payload_address /* verilator public */ ;
   reg        [31:0]   lastStageRegFileWrite_payload_data /* verilator public */ ;
-  reg                 _zz_2;
+  reg                 _zz_7;
   reg        [31:0]   execute_IntAluPlugin_bitwise;
   reg        [31:0]   _zz_execute_REGFILE_WRITE_DATA;
   reg        [31:0]   _zz_execute_SRC1;
@@ -656,7 +794,7 @@ module VexRiscv (
   wire       [31:0]   execute_LightShifterPlugin_shiftInput;
   wire                execute_LightShifterPlugin_done;
   wire                when_ShiftPlugins_l169;
-  reg        [31:0]   _zz_execute_to_memory_REGFILE_WRITE_DATA_1;
+  reg        [31:0]   _zz_decode_RS2_3;
   wire                when_ShiftPlugins_l175;
   wire                when_ShiftPlugins_l184;
   reg                 HazardSimplePlugin_src0Hazard;
@@ -669,16 +807,20 @@ module VexRiscv (
   reg        [31:0]   HazardSimplePlugin_writeBackBuffer_payload_data;
   wire                HazardSimplePlugin_addr0Match;
   wire                HazardSimplePlugin_addr1Match;
-  wire                when_HazardSimplePlugin_l59;
-  wire                when_HazardSimplePlugin_l62;
+  wire                when_HazardSimplePlugin_l47;
+  wire                when_HazardSimplePlugin_l48;
+  wire                when_HazardSimplePlugin_l51;
+  wire                when_HazardSimplePlugin_l45;
   wire                when_HazardSimplePlugin_l57;
   wire                when_HazardSimplePlugin_l58;
-  wire                when_HazardSimplePlugin_l59_1;
-  wire                when_HazardSimplePlugin_l62_1;
+  wire                when_HazardSimplePlugin_l48_1;
+  wire                when_HazardSimplePlugin_l51_1;
+  wire                when_HazardSimplePlugin_l45_1;
   wire                when_HazardSimplePlugin_l57_1;
   wire                when_HazardSimplePlugin_l58_1;
-  wire                when_HazardSimplePlugin_l59_2;
-  wire                when_HazardSimplePlugin_l62_2;
+  wire                when_HazardSimplePlugin_l48_2;
+  wire                when_HazardSimplePlugin_l51_2;
+  wire                when_HazardSimplePlugin_l45_2;
   wire                when_HazardSimplePlugin_l57_2;
   wire                when_HazardSimplePlugin_l58_2;
   wire                when_HazardSimplePlugin_l105;
@@ -686,17 +828,24 @@ module VexRiscv (
   wire                when_HazardSimplePlugin_l113;
   wire                execute_BranchPlugin_eq;
   wire       [2:0]    switch_Misc_l200_1;
-  reg                 _zz_execute_BRANCH_DO;
-  reg                 _zz_execute_BRANCH_DO_1;
-  wire       [31:0]   execute_BranchPlugin_branch_src1;
+  reg                 _zz_execute_BRANCH_COND_RESULT;
+  reg                 _zz_execute_BRANCH_COND_RESULT_1;
+  wire                _zz_execute_BranchPlugin_missAlignedTarget;
+  reg        [19:0]   _zz_execute_BranchPlugin_missAlignedTarget_1;
+  wire                _zz_execute_BranchPlugin_missAlignedTarget_2;
+  reg        [10:0]   _zz_execute_BranchPlugin_missAlignedTarget_3;
+  wire                _zz_execute_BranchPlugin_missAlignedTarget_4;
+  reg        [18:0]   _zz_execute_BranchPlugin_missAlignedTarget_5;
+  reg                 _zz_execute_BranchPlugin_missAlignedTarget_6;
+  wire                execute_BranchPlugin_missAlignedTarget;
+  reg        [31:0]   execute_BranchPlugin_branch_src1;
+  reg        [31:0]   execute_BranchPlugin_branch_src2;
   wire                _zz_execute_BranchPlugin_branch_src2;
-  reg        [10:0]   _zz_execute_BranchPlugin_branch_src2_1;
+  reg        [19:0]   _zz_execute_BranchPlugin_branch_src2_1;
   wire                _zz_execute_BranchPlugin_branch_src2_2;
-  reg        [19:0]   _zz_execute_BranchPlugin_branch_src2_3;
+  reg        [10:0]   _zz_execute_BranchPlugin_branch_src2_3;
   wire                _zz_execute_BranchPlugin_branch_src2_4;
   reg        [18:0]   _zz_execute_BranchPlugin_branch_src2_5;
-  reg        [31:0]   _zz_execute_BranchPlugin_branch_src2_6;
-  wire       [31:0]   execute_BranchPlugin_branch_src2;
   wire       [31:0]   execute_BranchPlugin_branchAdder;
   wire       [1:0]    CsrPlugin_misa_base;
   wire       [25:0]   CsrPlugin_misa_extensions;
@@ -734,6 +883,8 @@ module VexRiscv (
   wire       [1:0]    CsrPlugin_exceptionPortCtrl_exceptionTargetPrivilege;
   wire       [1:0]    _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code;
   wire                _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1;
+  wire       [1:0]    _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_2;
+  wire                _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3;
   wire                when_CsrPlugin_l909;
   wire                when_CsrPlugin_l909_1;
   wire                when_CsrPlugin_l909_2;
@@ -785,6 +936,45 @@ module VexRiscv (
   wire                when_CsrPlugin_l1176;
   wire                when_CsrPlugin_l1180;
   wire       [11:0]   execute_CsrPlugin_csrAddress;
+  reg        [32:0]   memory_MulDivIterativePlugin_rs1;
+  reg        [31:0]   memory_MulDivIterativePlugin_rs2;
+  reg        [64:0]   memory_MulDivIterativePlugin_accumulator;
+  wire                memory_MulDivIterativePlugin_frontendOk;
+  reg                 memory_MulDivIterativePlugin_mul_counter_willIncrement;
+  reg                 memory_MulDivIterativePlugin_mul_counter_willClear;
+  reg        [5:0]    memory_MulDivIterativePlugin_mul_counter_valueNext;
+  reg        [5:0]    memory_MulDivIterativePlugin_mul_counter_value;
+  wire                memory_MulDivIterativePlugin_mul_counter_willOverflowIfInc;
+  wire                memory_MulDivIterativePlugin_mul_counter_willOverflow;
+  wire                when_MulDivIterativePlugin_l96;
+  wire                when_MulDivIterativePlugin_l97;
+  wire                when_MulDivIterativePlugin_l100;
+  wire                when_MulDivIterativePlugin_l110;
+  reg                 memory_MulDivIterativePlugin_div_needRevert;
+  reg                 memory_MulDivIterativePlugin_div_counter_willIncrement;
+  reg                 memory_MulDivIterativePlugin_div_counter_willClear;
+  reg        [5:0]    memory_MulDivIterativePlugin_div_counter_valueNext;
+  reg        [5:0]    memory_MulDivIterativePlugin_div_counter_value;
+  wire                memory_MulDivIterativePlugin_div_counter_willOverflowIfInc;
+  wire                memory_MulDivIterativePlugin_div_counter_willOverflow;
+  reg                 memory_MulDivIterativePlugin_div_done;
+  wire                when_MulDivIterativePlugin_l126;
+  wire                when_MulDivIterativePlugin_l126_1;
+  reg        [31:0]   memory_MulDivIterativePlugin_div_result;
+  wire                when_MulDivIterativePlugin_l128;
+  wire                when_MulDivIterativePlugin_l129;
+  wire                when_MulDivIterativePlugin_l132;
+  wire       [31:0]   _zz_memory_MulDivIterativePlugin_div_stage_0_remainderShifted;
+  wire       [32:0]   memory_MulDivIterativePlugin_div_stage_0_remainderShifted;
+  wire       [32:0]   memory_MulDivIterativePlugin_div_stage_0_remainderMinusDenominator;
+  wire       [31:0]   memory_MulDivIterativePlugin_div_stage_0_outRemainder;
+  wire       [31:0]   memory_MulDivIterativePlugin_div_stage_0_outNumerator;
+  wire                when_MulDivIterativePlugin_l151;
+  wire       [31:0]   _zz_memory_MulDivIterativePlugin_div_result;
+  wire                when_MulDivIterativePlugin_l162;
+  wire                _zz_memory_MulDivIterativePlugin_rs1;
+  wire                _zz_memory_MulDivIterativePlugin_rs1_1;
+  reg        [32:0]   _zz_memory_MulDivIterativePlugin_rs1_2;
   reg        [31:0]   externalInterruptArray_regNext;
   reg        [31:0]   _zz_CsrPlugin_csrMapping_readDataInit;
   wire       [31:0]   _zz_CsrPlugin_csrMapping_readDataInit_1;
@@ -800,6 +990,10 @@ module VexRiscv (
   reg                 DebugPlugin_debugUsed /* verilator public */ ;
   reg                 DebugPlugin_disableEbreak;
   wire                DebugPlugin_allowEBreak;
+  reg                 DebugPlugin_hardwareBreakpoints_0_valid;
+  reg        [30:0]   DebugPlugin_hardwareBreakpoints_0_pc;
+  reg                 DebugPlugin_hardwareBreakpoints_1_valid;
+  reg        [30:0]   DebugPlugin_hardwareBreakpoints_1_pc;
   reg        [31:0]   DebugPlugin_busReadDataReg;
   reg                 _zz_when_DebugPlugin_l244;
   wire                when_DebugPlugin_l244;
@@ -884,32 +1078,46 @@ module VexRiscv (
   wire                when_Pipeline_l124_32;
   reg        `EnvCtrlEnum_binary_sequential_type memory_to_writeBack_ENV_CTRL;
   wire                when_Pipeline_l124_33;
-  reg        [31:0]   decode_to_execute_RS1;
+  reg                 decode_to_execute_IS_MUL;
   wire                when_Pipeline_l124_34;
-  reg        [31:0]   decode_to_execute_RS2;
+  reg                 execute_to_memory_IS_MUL;
   wire                when_Pipeline_l124_35;
-  reg                 decode_to_execute_SRC2_FORCE_ZERO;
+  reg                 decode_to_execute_IS_RS1_SIGNED;
   wire                when_Pipeline_l124_36;
-  reg                 decode_to_execute_CSR_WRITE_OPCODE;
+  reg                 decode_to_execute_IS_RS2_SIGNED;
   wire                when_Pipeline_l124_37;
-  reg                 decode_to_execute_CSR_READ_OPCODE;
+  reg                 decode_to_execute_IS_DIV;
   wire                when_Pipeline_l124_38;
-  reg                 decode_to_execute_DO_EBREAK;
+  reg                 execute_to_memory_IS_DIV;
   wire                when_Pipeline_l124_39;
-  reg                 execute_to_memory_ALIGNEMENT_FAULT;
+  reg        [31:0]   decode_to_execute_RS1;
   wire                when_Pipeline_l124_40;
-  reg        [1:0]    execute_to_memory_MEMORY_ADDRESS_LOW;
+  reg        [31:0]   decode_to_execute_RS2;
   wire                when_Pipeline_l124_41;
-  reg        [1:0]    memory_to_writeBack_MEMORY_ADDRESS_LOW;
+  reg                 decode_to_execute_SRC2_FORCE_ZERO;
   wire                when_Pipeline_l124_42;
-  reg        [31:0]   execute_to_memory_REGFILE_WRITE_DATA;
+  reg                 decode_to_execute_PREDICTION_HAD_BRANCHED2;
   wire                when_Pipeline_l124_43;
-  reg        [31:0]   memory_to_writeBack_REGFILE_WRITE_DATA;
+  reg                 decode_to_execute_CSR_WRITE_OPCODE;
   wire                when_Pipeline_l124_44;
-  reg                 execute_to_memory_BRANCH_DO;
+  reg                 decode_to_execute_CSR_READ_OPCODE;
   wire                when_Pipeline_l124_45;
-  reg        [31:0]   execute_to_memory_BRANCH_CALC;
+  reg                 decode_to_execute_DO_EBREAK;
   wire                when_Pipeline_l124_46;
+  reg                 execute_to_memory_ALIGNEMENT_FAULT;
+  wire                when_Pipeline_l124_47;
+  reg        [1:0]    execute_to_memory_MEMORY_ADDRESS_LOW;
+  wire                when_Pipeline_l124_48;
+  reg        [1:0]    memory_to_writeBack_MEMORY_ADDRESS_LOW;
+  wire                when_Pipeline_l124_49;
+  reg        [31:0]   execute_to_memory_REGFILE_WRITE_DATA;
+  wire                when_Pipeline_l124_50;
+  reg        [31:0]   memory_to_writeBack_REGFILE_WRITE_DATA;
+  wire                when_Pipeline_l124_51;
+  reg                 execute_to_memory_BRANCH_DO;
+  wire                when_Pipeline_l124_52;
+  reg        [31:0]   execute_to_memory_BRANCH_CALC;
+  wire                when_Pipeline_l124_53;
   reg        [31:0]   memory_to_writeBack_MEMORY_READ_DATA;
   wire                when_Pipeline_l151;
   wire                when_Pipeline_l154;
@@ -919,7 +1127,6 @@ module VexRiscv (
   wire                when_Pipeline_l154_2;
   reg        [2:0]    switch_Fetcher_l362;
   wire                when_Fetcher_l378;
-  wire                when_Fetcher_l398;
   wire                when_CsrPlugin_l1264;
   reg                 execute_CsrPlugin_csr_768;
   wire                when_CsrPlugin_l1264_1;
@@ -948,12 +1155,10 @@ module VexRiscv (
   reg        [31:0]   _zz_CsrPlugin_csrMapping_readDataInit_9;
   wire                when_CsrPlugin_l1297;
   wire                when_CsrPlugin_l1302;
-  wire                iBus_cmd_m2sPipe_valid;
-  wire                iBus_cmd_m2sPipe_ready;
-  wire       [31:0]   iBus_cmd_m2sPipe_payload_pc;
-  reg                 iBus_cmd_rValid;
-  reg        [31:0]   iBus_cmd_rData_pc;
-  wire                when_Stream_l342;
+  reg        [2:0]    _zz_iBusWishbone_ADR;
+  wire                when_InstructionCache_l239;
+  reg                 _zz_iBus_rsp_valid;
+  reg        [31:0]   iBusWishbone_DAT_MISO_regNext;
   wire                dBus_cmd_halfPipe_valid;
   wire                dBus_cmd_halfPipe_ready;
   wire                dBus_cmd_halfPipe_payload_wr;
@@ -977,8 +1182,6 @@ module VexRiscv (
   reg [39:0] _zz_decode_ENV_CTRL_string;
   reg [39:0] _zz_decode_to_execute_ENV_CTRL_string;
   reg [39:0] _zz_decode_to_execute_ENV_CTRL_1_string;
-  reg [31:0] decode_BRANCH_CTRL_string;
-  reg [31:0] _zz_decode_BRANCH_CTRL_string;
   reg [31:0] _zz_decode_to_execute_BRANCH_CTRL_string;
   reg [31:0] _zz_decode_to_execute_BRANCH_CTRL_1_string;
   reg [71:0] decode_SHIFT_CTRL_string;
@@ -1020,19 +1223,21 @@ module VexRiscv (
   reg [39:0] execute_ALU_BITWISE_CTRL_string;
   reg [39:0] _zz_execute_ALU_BITWISE_CTRL_string;
   reg [39:0] _zz_decode_ENV_CTRL_1_string;
-  reg [31:0] _zz_decode_BRANCH_CTRL_1_string;
+  reg [31:0] _zz_decode_BRANCH_CTRL_string;
   reg [71:0] _zz_decode_SHIFT_CTRL_1_string;
   reg [39:0] _zz_decode_ALU_BITWISE_CTRL_1_string;
   reg [23:0] _zz_decode_SRC2_CTRL_1_string;
   reg [63:0] _zz_decode_ALU_CTRL_1_string;
   reg [95:0] _zz_decode_SRC1_CTRL_1_string;
+  reg [31:0] decode_BRANCH_CTRL_string;
+  reg [31:0] _zz_decode_BRANCH_CTRL_1_string;
   reg [95:0] _zz_decode_SRC1_CTRL_2_string;
   reg [63:0] _zz_decode_ALU_CTRL_2_string;
   reg [23:0] _zz_decode_SRC2_CTRL_2_string;
   reg [39:0] _zz_decode_ALU_BITWISE_CTRL_2_string;
   reg [71:0] _zz_decode_SHIFT_CTRL_2_string;
   reg [31:0] _zz_decode_BRANCH_CTRL_2_string;
-  reg [39:0] _zz_decode_ENV_CTRL_7_string;
+  reg [39:0] _zz_decode_ENV_CTRL_2_string;
   reg [95:0] decode_to_execute_SRC1_CTRL_string;
   reg [63:0] decode_to_execute_ALU_CTRL_string;
   reg [23:0] decode_to_execute_SRC2_CTRL_string;
@@ -1046,20 +1251,21 @@ module VexRiscv (
 
   (* ram_style = "block" *) reg [31:0] RegFilePlugin_regFile [0:31] /* verilator public */ ;
 
-  assign _zz_when = ({BranchPlugin_branchExceptionPort_valid,DBusSimplePlugin_memoryExceptionPort_valid} != 2'b00);
-  assign _zz_IBusSimplePlugin_jump_pcLoad_payload_1 = (_zz_IBusSimplePlugin_jump_pcLoad_payload & (~ _zz_IBusSimplePlugin_jump_pcLoad_payload_2));
-  assign _zz_IBusSimplePlugin_jump_pcLoad_payload_2 = (_zz_IBusSimplePlugin_jump_pcLoad_payload - 2'b01);
-  assign _zz_IBusSimplePlugin_fetchPc_pc_1 = {IBusSimplePlugin_fetchPc_inc,2'b00};
-  assign _zz_IBusSimplePlugin_fetchPc_pc = {29'd0, _zz_IBusSimplePlugin_fetchPc_pc_1};
-  assign _zz_IBusSimplePlugin_pending_next = (IBusSimplePlugin_pending_value + _zz_IBusSimplePlugin_pending_next_1);
-  assign _zz_IBusSimplePlugin_pending_next_2 = IBusSimplePlugin_pending_inc;
-  assign _zz_IBusSimplePlugin_pending_next_1 = {2'd0, _zz_IBusSimplePlugin_pending_next_2};
-  assign _zz_IBusSimplePlugin_pending_next_4 = IBusSimplePlugin_pending_dec;
-  assign _zz_IBusSimplePlugin_pending_next_3 = {2'd0, _zz_IBusSimplePlugin_pending_next_4};
-  assign _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_1 = (IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_valid && (IBusSimplePlugin_rspJoin_rspBuffer_discardCounter != 3'b000));
-  assign _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter = {2'd0, _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_1};
-  assign _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_3 = IBusSimplePlugin_pending_dec;
-  assign _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_2 = {2'd0, _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_3};
+  assign _zz_when = ({decodeExceptionPort_valid,IBusCachedPlugin_decodeExceptionPort_valid} != 2'b00);
+  assign _zz_when_1 = ({BranchPlugin_branchExceptionPort_valid,DBusSimplePlugin_memoryExceptionPort_valid} != 2'b00);
+  assign _zz_decode_DO_EBREAK = (decode_PC >>> 1);
+  assign _zz_decode_DO_EBREAK_1 = (decode_PC >>> 1);
+  assign _zz__zz_IBusCachedPlugin_jump_pcLoad_payload_1 = (_zz_IBusCachedPlugin_jump_pcLoad_payload - 3'b001);
+  assign _zz_IBusCachedPlugin_fetchPc_pc_1 = {IBusCachedPlugin_fetchPc_inc,2'b00};
+  assign _zz_IBusCachedPlugin_fetchPc_pc = {29'd0, _zz_IBusCachedPlugin_fetchPc_pc_1};
+  assign _zz__zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch = {{{decode_INSTRUCTION[31],decode_INSTRUCTION[7]},decode_INSTRUCTION[30 : 25]},decode_INSTRUCTION[11 : 8]};
+  assign _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_2 = {{_zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1,{{{decode_INSTRUCTION[31],decode_INSTRUCTION[7]},decode_INSTRUCTION[30 : 25]},decode_INSTRUCTION[11 : 8]}},1'b0};
+  assign _zz__zz_2 = {{{decode_INSTRUCTION[31],decode_INSTRUCTION[19 : 12]},decode_INSTRUCTION[20]},decode_INSTRUCTION[30 : 21]};
+  assign _zz__zz_4 = {{{decode_INSTRUCTION[31],decode_INSTRUCTION[7]},decode_INSTRUCTION[30 : 25]},decode_INSTRUCTION[11 : 8]};
+  assign _zz__zz_6 = {{_zz_3,{{{decode_INSTRUCTION[31],decode_INSTRUCTION[19 : 12]},decode_INSTRUCTION[20]},decode_INSTRUCTION[30 : 21]}},1'b0};
+  assign _zz__zz_6_1 = {{_zz_5,{{{decode_INSTRUCTION[31],decode_INSTRUCTION[7]},decode_INSTRUCTION[30 : 25]},decode_INSTRUCTION[11 : 8]}},1'b0};
+  assign _zz__zz_IBusCachedPlugin_predictionJumpInterface_payload = {{{decode_INSTRUCTION[31],decode_INSTRUCTION[19 : 12]},decode_INSTRUCTION[20]},decode_INSTRUCTION[30 : 21]};
+  assign _zz__zz_IBusCachedPlugin_predictionJumpInterface_payload_2 = {{{decode_INSTRUCTION[31],decode_INSTRUCTION[7]},decode_INSTRUCTION[30 : 25]},decode_INSTRUCTION[11 : 8]};
   assign _zz_DBusSimplePlugin_memoryExceptionPort_payload_code = (memory_MEMORY_STORE ? 3'b110 : 3'b100);
   assign _zz__zz_execute_REGFILE_WRITE_DATA = execute_SRC_LESS;
   assign _zz__zz_execute_SRC1 = 3'b100;
@@ -1072,14 +1278,47 @@ module VexRiscv (
   assign _zz_execute_SrcPlugin_addSub_4 = (execute_SRC_USE_SUB_LESS ? _zz_execute_SrcPlugin_addSub_5 : _zz_execute_SrcPlugin_addSub_6);
   assign _zz_execute_SrcPlugin_addSub_5 = 32'h00000001;
   assign _zz_execute_SrcPlugin_addSub_6 = 32'h0;
-  assign _zz__zz_execute_to_memory_REGFILE_WRITE_DATA_1 = (_zz__zz_execute_to_memory_REGFILE_WRITE_DATA_1_1 >>> 1);
-  assign _zz__zz_execute_to_memory_REGFILE_WRITE_DATA_1_1 = {((execute_SHIFT_CTRL == `ShiftCtrlEnum_binary_sequential_SRA_1) && execute_LightShifterPlugin_shiftInput[31]),execute_LightShifterPlugin_shiftInput};
-  assign _zz__zz_execute_BranchPlugin_branch_src2 = {{{execute_INSTRUCTION[31],execute_INSTRUCTION[19 : 12]},execute_INSTRUCTION[20]},execute_INSTRUCTION[30 : 21]};
+  assign _zz__zz_decode_RS2_3 = (_zz__zz_decode_RS2_3_1 >>> 1);
+  assign _zz__zz_decode_RS2_3_1 = {((execute_SHIFT_CTRL == `ShiftCtrlEnum_binary_sequential_SRA_1) && execute_LightShifterPlugin_shiftInput[31]),execute_LightShifterPlugin_shiftInput};
+  assign _zz__zz_execute_BranchPlugin_missAlignedTarget_2 = {{{execute_INSTRUCTION[31],execute_INSTRUCTION[19 : 12]},execute_INSTRUCTION[20]},execute_INSTRUCTION[30 : 21]};
+  assign _zz__zz_execute_BranchPlugin_missAlignedTarget_4 = {{{execute_INSTRUCTION[31],execute_INSTRUCTION[7]},execute_INSTRUCTION[30 : 25]},execute_INSTRUCTION[11 : 8]};
+  assign _zz__zz_execute_BranchPlugin_missAlignedTarget_6 = {_zz_execute_BranchPlugin_missAlignedTarget_1,execute_INSTRUCTION[31 : 20]};
+  assign _zz__zz_execute_BranchPlugin_missAlignedTarget_6_1 = {{_zz_execute_BranchPlugin_missAlignedTarget_3,{{{execute_INSTRUCTION[31],execute_INSTRUCTION[19 : 12]},execute_INSTRUCTION[20]},execute_INSTRUCTION[30 : 21]}},1'b0};
+  assign _zz__zz_execute_BranchPlugin_missAlignedTarget_6_2 = {{_zz_execute_BranchPlugin_missAlignedTarget_5,{{{execute_INSTRUCTION[31],execute_INSTRUCTION[7]},execute_INSTRUCTION[30 : 25]},execute_INSTRUCTION[11 : 8]}},1'b0};
+  assign _zz__zz_execute_BranchPlugin_branch_src2_2 = {{{execute_INSTRUCTION[31],execute_INSTRUCTION[19 : 12]},execute_INSTRUCTION[20]},execute_INSTRUCTION[30 : 21]};
   assign _zz__zz_execute_BranchPlugin_branch_src2_4 = {{{execute_INSTRUCTION[31],execute_INSTRUCTION[7]},execute_INSTRUCTION[30 : 25]},execute_INSTRUCTION[11 : 8]};
+  assign _zz_execute_BranchPlugin_branch_src2_9 = 3'b100;
   assign _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1 = (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code & (~ _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1_1));
   assign _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1_1 = (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code - 2'b01);
+  assign _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3 = (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_2 & (~ _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3_1));
+  assign _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3_1 = (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_2 - 2'b01);
+  assign _zz_memory_MulDivIterativePlugin_mul_counter_valueNext_1 = memory_MulDivIterativePlugin_mul_counter_willIncrement;
+  assign _zz_memory_MulDivIterativePlugin_mul_counter_valueNext = {5'd0, _zz_memory_MulDivIterativePlugin_mul_counter_valueNext_1};
+  assign _zz_memory_MulDivIterativePlugin_accumulator = (_zz_memory_MulDivIterativePlugin_accumulator_1 + _zz_memory_MulDivIterativePlugin_accumulator_3);
+  assign _zz_memory_MulDivIterativePlugin_accumulator_2 = (memory_MulDivIterativePlugin_rs2[0] ? memory_MulDivIterativePlugin_rs1 : 33'h0);
+  assign _zz_memory_MulDivIterativePlugin_accumulator_1 = {{1{_zz_memory_MulDivIterativePlugin_accumulator_2[32]}}, _zz_memory_MulDivIterativePlugin_accumulator_2};
+  assign _zz_memory_MulDivIterativePlugin_accumulator_4 = _zz_memory_MulDivIterativePlugin_accumulator_5;
+  assign _zz_memory_MulDivIterativePlugin_accumulator_3 = {{1{_zz_memory_MulDivIterativePlugin_accumulator_4[32]}}, _zz_memory_MulDivIterativePlugin_accumulator_4};
+  assign _zz_memory_MulDivIterativePlugin_accumulator_5 = (memory_MulDivIterativePlugin_accumulator >>> 32);
+  assign _zz_memory_MulDivIterativePlugin_div_counter_valueNext_1 = memory_MulDivIterativePlugin_div_counter_willIncrement;
+  assign _zz_memory_MulDivIterativePlugin_div_counter_valueNext = {5'd0, _zz_memory_MulDivIterativePlugin_div_counter_valueNext_1};
+  assign _zz_memory_MulDivIterativePlugin_div_stage_0_remainderMinusDenominator = {1'd0, memory_MulDivIterativePlugin_rs2};
+  assign _zz_memory_MulDivIterativePlugin_div_stage_0_outRemainder = memory_MulDivIterativePlugin_div_stage_0_remainderMinusDenominator[31:0];
+  assign _zz_memory_MulDivIterativePlugin_div_stage_0_outRemainder_1 = memory_MulDivIterativePlugin_div_stage_0_remainderShifted[31:0];
+  assign _zz_memory_MulDivIterativePlugin_div_stage_0_outNumerator = {_zz_memory_MulDivIterativePlugin_div_stage_0_remainderShifted,(! memory_MulDivIterativePlugin_div_stage_0_remainderMinusDenominator[32])};
+  assign _zz_memory_MulDivIterativePlugin_div_result_1 = _zz_memory_MulDivIterativePlugin_div_result_2;
+  assign _zz_memory_MulDivIterativePlugin_div_result_2 = _zz_memory_MulDivIterativePlugin_div_result_3;
+  assign _zz_memory_MulDivIterativePlugin_div_result_3 = ({memory_MulDivIterativePlugin_div_needRevert,(memory_MulDivIterativePlugin_div_needRevert ? (~ _zz_memory_MulDivIterativePlugin_div_result) : _zz_memory_MulDivIterativePlugin_div_result)} + _zz_memory_MulDivIterativePlugin_div_result_4);
+  assign _zz_memory_MulDivIterativePlugin_div_result_5 = memory_MulDivIterativePlugin_div_needRevert;
+  assign _zz_memory_MulDivIterativePlugin_div_result_4 = {32'd0, _zz_memory_MulDivIterativePlugin_div_result_5};
+  assign _zz_memory_MulDivIterativePlugin_rs1_4 = _zz_memory_MulDivIterativePlugin_rs1_1;
+  assign _zz_memory_MulDivIterativePlugin_rs1_3 = {32'd0, _zz_memory_MulDivIterativePlugin_rs1_4};
+  assign _zz_memory_MulDivIterativePlugin_rs2_1 = _zz_memory_MulDivIterativePlugin_rs1;
+  assign _zz_memory_MulDivIterativePlugin_rs2 = {31'd0, _zz_memory_MulDivIterativePlugin_rs2_1};
+  assign _zz_iBusWishbone_ADR_1 = (iBus_cmd_payload_address >>> 5);
   assign _zz_decode_RegFilePlugin_rs1Data = 1'b1;
   assign _zz_decode_RegFilePlugin_rs2Data = 1'b1;
+  assign _zz_IBusCachedPlugin_jump_pcLoad_payload_5 = {_zz_IBusCachedPlugin_jump_pcLoad_payload_3,_zz_IBusCachedPlugin_jump_pcLoad_payload_2};
   assign _zz_decode_LEGAL_INSTRUCTION = 32'h0000107f;
   assign _zz_decode_LEGAL_INSTRUCTION_1 = (decode_INSTRUCTION & 32'h0000207f);
   assign _zz_decode_LEGAL_INSTRUCTION_2 = 32'h00002073;
@@ -1090,126 +1329,170 @@ module VexRiscv (
   assign _zz_decode_LEGAL_INSTRUCTION_7 = (decode_INSTRUCTION & 32'h0000707b);
   assign _zz_decode_LEGAL_INSTRUCTION_8 = 32'h00000063;
   assign _zz_decode_LEGAL_INSTRUCTION_9 = ((decode_INSTRUCTION & 32'h0000607f) == 32'h0000000f);
-  assign _zz_decode_LEGAL_INSTRUCTION_10 = ((decode_INSTRUCTION & 32'hfe00007f) == 32'h00000033);
-  assign _zz_decode_LEGAL_INSTRUCTION_11 = {((decode_INSTRUCTION & 32'hbc00707f) == 32'h00005013),{((decode_INSTRUCTION & 32'hfc00307f) == 32'h00001013),{((decode_INSTRUCTION & _zz_decode_LEGAL_INSTRUCTION_12) == 32'h00005033),{(_zz_decode_LEGAL_INSTRUCTION_13 == _zz_decode_LEGAL_INSTRUCTION_14),{_zz_decode_LEGAL_INSTRUCTION_15,{_zz_decode_LEGAL_INSTRUCTION_16,_zz_decode_LEGAL_INSTRUCTION_17}}}}}};
+  assign _zz_decode_LEGAL_INSTRUCTION_10 = ((decode_INSTRUCTION & 32'hfc00007f) == 32'h00000033);
+  assign _zz_decode_LEGAL_INSTRUCTION_11 = {((decode_INSTRUCTION & 32'hfc00305f) == 32'h00001013),{((decode_INSTRUCTION & 32'hbc00707f) == 32'h00005013),{((decode_INSTRUCTION & _zz_decode_LEGAL_INSTRUCTION_12) == 32'h00005033),{(_zz_decode_LEGAL_INSTRUCTION_13 == _zz_decode_LEGAL_INSTRUCTION_14),{_zz_decode_LEGAL_INSTRUCTION_15,{_zz_decode_LEGAL_INSTRUCTION_16,_zz_decode_LEGAL_INSTRUCTION_17}}}}}};
   assign _zz_decode_LEGAL_INSTRUCTION_12 = 32'hbe00707f;
   assign _zz_decode_LEGAL_INSTRUCTION_13 = (decode_INSTRUCTION & 32'hbe00707f);
   assign _zz_decode_LEGAL_INSTRUCTION_14 = 32'h00000033;
   assign _zz_decode_LEGAL_INSTRUCTION_15 = ((decode_INSTRUCTION & 32'hdfffffff) == 32'h10200073);
   assign _zz_decode_LEGAL_INSTRUCTION_16 = ((decode_INSTRUCTION & 32'hffefffff) == 32'h00000073);
   assign _zz_decode_LEGAL_INSTRUCTION_17 = ((decode_INSTRUCTION & 32'hffffffff) == 32'h10500073);
-  assign _zz__zz_decode_ENV_CTRL_2 = 32'h10103050;
-  assign _zz__zz_decode_ENV_CTRL_2_1 = (decode_INSTRUCTION & 32'h10103050);
-  assign _zz__zz_decode_ENV_CTRL_2_2 = 32'h00000050;
-  assign _zz__zz_decode_ENV_CTRL_2_3 = ((decode_INSTRUCTION & 32'h10403050) == 32'h10000050);
-  assign _zz__zz_decode_ENV_CTRL_2_4 = {(_zz__zz_decode_ENV_CTRL_2_5 == _zz__zz_decode_ENV_CTRL_2_6),(_zz__zz_decode_ENV_CTRL_2_7 == _zz__zz_decode_ENV_CTRL_2_8)};
-  assign _zz__zz_decode_ENV_CTRL_2_9 = 2'b00;
-  assign _zz__zz_decode_ENV_CTRL_2_10 = ({_zz_decode_ENV_CTRL_6,_zz__zz_decode_ENV_CTRL_2_11} != 2'b00);
-  assign _zz__zz_decode_ENV_CTRL_2_12 = (_zz__zz_decode_ENV_CTRL_2_13 != 1'b0);
-  assign _zz__zz_decode_ENV_CTRL_2_14 = {(_zz__zz_decode_ENV_CTRL_2_15 != _zz__zz_decode_ENV_CTRL_2_17),{_zz__zz_decode_ENV_CTRL_2_18,{_zz__zz_decode_ENV_CTRL_2_21,_zz__zz_decode_ENV_CTRL_2_26}}};
-  assign _zz__zz_decode_ENV_CTRL_2_5 = (decode_INSTRUCTION & 32'h00001050);
-  assign _zz__zz_decode_ENV_CTRL_2_6 = 32'h00001050;
-  assign _zz__zz_decode_ENV_CTRL_2_7 = (decode_INSTRUCTION & 32'h00002050);
-  assign _zz__zz_decode_ENV_CTRL_2_8 = 32'h00002050;
-  assign _zz__zz_decode_ENV_CTRL_2_11 = ((decode_INSTRUCTION & 32'h0000001c) == 32'h00000004);
-  assign _zz__zz_decode_ENV_CTRL_2_13 = ((decode_INSTRUCTION & 32'h00000058) == 32'h00000040);
-  assign _zz__zz_decode_ENV_CTRL_2_15 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_16) == 32'h00005010);
-  assign _zz__zz_decode_ENV_CTRL_2_17 = 1'b0;
-  assign _zz__zz_decode_ENV_CTRL_2_18 = ({_zz__zz_decode_ENV_CTRL_2_19,_zz__zz_decode_ENV_CTRL_2_20} != 2'b00);
-  assign _zz__zz_decode_ENV_CTRL_2_21 = ({_zz__zz_decode_ENV_CTRL_2_22,_zz__zz_decode_ENV_CTRL_2_24} != 2'b00);
-  assign _zz__zz_decode_ENV_CTRL_2_26 = {(_zz__zz_decode_ENV_CTRL_2_27 != _zz__zz_decode_ENV_CTRL_2_29),{_zz__zz_decode_ENV_CTRL_2_30,{_zz__zz_decode_ENV_CTRL_2_33,_zz__zz_decode_ENV_CTRL_2_38}}};
-  assign _zz__zz_decode_ENV_CTRL_2_16 = 32'h00007054;
-  assign _zz__zz_decode_ENV_CTRL_2_19 = ((decode_INSTRUCTION & 32'h40003054) == 32'h40001010);
-  assign _zz__zz_decode_ENV_CTRL_2_20 = ((decode_INSTRUCTION & 32'h00007054) == 32'h00001010);
-  assign _zz__zz_decode_ENV_CTRL_2_22 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_23) == 32'h00000024);
-  assign _zz__zz_decode_ENV_CTRL_2_24 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_25) == 32'h00001010);
-  assign _zz__zz_decode_ENV_CTRL_2_27 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_28) == 32'h00001000);
-  assign _zz__zz_decode_ENV_CTRL_2_29 = 1'b0;
-  assign _zz__zz_decode_ENV_CTRL_2_30 = ((_zz__zz_decode_ENV_CTRL_2_31 == _zz__zz_decode_ENV_CTRL_2_32) != 1'b0);
-  assign _zz__zz_decode_ENV_CTRL_2_33 = ({_zz__zz_decode_ENV_CTRL_2_34,_zz__zz_decode_ENV_CTRL_2_36} != 2'b00);
-  assign _zz__zz_decode_ENV_CTRL_2_38 = {(_zz__zz_decode_ENV_CTRL_2_39 != _zz__zz_decode_ENV_CTRL_2_44),{_zz__zz_decode_ENV_CTRL_2_45,{_zz__zz_decode_ENV_CTRL_2_51,_zz__zz_decode_ENV_CTRL_2_53}}};
-  assign _zz__zz_decode_ENV_CTRL_2_23 = 32'h00000064;
-  assign _zz__zz_decode_ENV_CTRL_2_25 = 32'h00003054;
-  assign _zz__zz_decode_ENV_CTRL_2_28 = 32'h00001000;
-  assign _zz__zz_decode_ENV_CTRL_2_31 = (decode_INSTRUCTION & 32'h00003000);
-  assign _zz__zz_decode_ENV_CTRL_2_32 = 32'h00002000;
-  assign _zz__zz_decode_ENV_CTRL_2_34 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_35) == 32'h00002000);
-  assign _zz__zz_decode_ENV_CTRL_2_36 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_37) == 32'h00001000);
-  assign _zz__zz_decode_ENV_CTRL_2_39 = {(_zz__zz_decode_ENV_CTRL_2_40 == _zz__zz_decode_ENV_CTRL_2_41),(_zz__zz_decode_ENV_CTRL_2_42 == _zz__zz_decode_ENV_CTRL_2_43)};
-  assign _zz__zz_decode_ENV_CTRL_2_44 = 2'b00;
-  assign _zz__zz_decode_ENV_CTRL_2_45 = ({_zz__zz_decode_ENV_CTRL_2_46,{_zz__zz_decode_ENV_CTRL_2_47,_zz__zz_decode_ENV_CTRL_2_49}} != 3'b000);
-  assign _zz__zz_decode_ENV_CTRL_2_51 = (_zz__zz_decode_ENV_CTRL_2_52 != 1'b0);
-  assign _zz__zz_decode_ENV_CTRL_2_53 = {(_zz__zz_decode_ENV_CTRL_2_54 != _zz__zz_decode_ENV_CTRL_2_56),{_zz__zz_decode_ENV_CTRL_2_57,{_zz__zz_decode_ENV_CTRL_2_58,_zz__zz_decode_ENV_CTRL_2_69}}};
-  assign _zz__zz_decode_ENV_CTRL_2_35 = 32'h00002010;
-  assign _zz__zz_decode_ENV_CTRL_2_37 = 32'h00005000;
-  assign _zz__zz_decode_ENV_CTRL_2_40 = (decode_INSTRUCTION & 32'h00000034);
-  assign _zz__zz_decode_ENV_CTRL_2_41 = 32'h00000020;
-  assign _zz__zz_decode_ENV_CTRL_2_42 = (decode_INSTRUCTION & 32'h00000064);
-  assign _zz__zz_decode_ENV_CTRL_2_43 = 32'h00000020;
-  assign _zz__zz_decode_ENV_CTRL_2_46 = ((decode_INSTRUCTION & 32'h00000050) == 32'h00000040);
-  assign _zz__zz_decode_ENV_CTRL_2_47 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_48) == 32'h0);
-  assign _zz__zz_decode_ENV_CTRL_2_49 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_50) == 32'h00000040);
-  assign _zz__zz_decode_ENV_CTRL_2_52 = ((decode_INSTRUCTION & 32'h00000020) == 32'h00000020);
-  assign _zz__zz_decode_ENV_CTRL_2_54 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_55) == 32'h00000010);
-  assign _zz__zz_decode_ENV_CTRL_2_56 = 1'b0;
-  assign _zz__zz_decode_ENV_CTRL_2_57 = (_zz_decode_ENV_CTRL_5 != 1'b0);
-  assign _zz__zz_decode_ENV_CTRL_2_58 = ({_zz__zz_decode_ENV_CTRL_2_59,_zz__zz_decode_ENV_CTRL_2_60} != 6'h0);
-  assign _zz__zz_decode_ENV_CTRL_2_69 = {(_zz__zz_decode_ENV_CTRL_2_70 != _zz__zz_decode_ENV_CTRL_2_73),{_zz__zz_decode_ENV_CTRL_2_74,{_zz__zz_decode_ENV_CTRL_2_77,_zz__zz_decode_ENV_CTRL_2_84}}};
-  assign _zz__zz_decode_ENV_CTRL_2_48 = 32'h00000038;
-  assign _zz__zz_decode_ENV_CTRL_2_50 = 32'h00103040;
-  assign _zz__zz_decode_ENV_CTRL_2_55 = 32'h00000010;
-  assign _zz__zz_decode_ENV_CTRL_2_59 = _zz_decode_ENV_CTRL_6;
-  assign _zz__zz_decode_ENV_CTRL_2_60 = {(_zz__zz_decode_ENV_CTRL_2_61 == _zz__zz_decode_ENV_CTRL_2_62),{_zz__zz_decode_ENV_CTRL_2_63,{_zz__zz_decode_ENV_CTRL_2_65,_zz__zz_decode_ENV_CTRL_2_66}}};
-  assign _zz__zz_decode_ENV_CTRL_2_70 = {_zz_decode_ENV_CTRL_4,(_zz__zz_decode_ENV_CTRL_2_71 == _zz__zz_decode_ENV_CTRL_2_72)};
-  assign _zz__zz_decode_ENV_CTRL_2_73 = 2'b00;
-  assign _zz__zz_decode_ENV_CTRL_2_74 = ({_zz_decode_ENV_CTRL_4,_zz__zz_decode_ENV_CTRL_2_75} != 2'b00);
-  assign _zz__zz_decode_ENV_CTRL_2_77 = ({_zz__zz_decode_ENV_CTRL_2_78,_zz__zz_decode_ENV_CTRL_2_81} != 2'b00);
-  assign _zz__zz_decode_ENV_CTRL_2_84 = {(_zz__zz_decode_ENV_CTRL_2_85 != _zz__zz_decode_ENV_CTRL_2_88),{_zz__zz_decode_ENV_CTRL_2_89,{_zz__zz_decode_ENV_CTRL_2_97,_zz__zz_decode_ENV_CTRL_2_101}}};
-  assign _zz__zz_decode_ENV_CTRL_2_61 = (decode_INSTRUCTION & 32'h00001010);
-  assign _zz__zz_decode_ENV_CTRL_2_62 = 32'h00001010;
-  assign _zz__zz_decode_ENV_CTRL_2_63 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_64) == 32'h00002010);
-  assign _zz__zz_decode_ENV_CTRL_2_65 = _zz_decode_ENV_CTRL_5;
-  assign _zz__zz_decode_ENV_CTRL_2_66 = {_zz__zz_decode_ENV_CTRL_2_67,_zz__zz_decode_ENV_CTRL_2_68};
-  assign _zz__zz_decode_ENV_CTRL_2_71 = (decode_INSTRUCTION & 32'h00000070);
-  assign _zz__zz_decode_ENV_CTRL_2_72 = 32'h00000020;
-  assign _zz__zz_decode_ENV_CTRL_2_75 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_76) == 32'h0);
-  assign _zz__zz_decode_ENV_CTRL_2_78 = (_zz__zz_decode_ENV_CTRL_2_79 == _zz__zz_decode_ENV_CTRL_2_80);
-  assign _zz__zz_decode_ENV_CTRL_2_81 = (_zz__zz_decode_ENV_CTRL_2_82 == _zz__zz_decode_ENV_CTRL_2_83);
-  assign _zz__zz_decode_ENV_CTRL_2_85 = (_zz__zz_decode_ENV_CTRL_2_86 == _zz__zz_decode_ENV_CTRL_2_87);
-  assign _zz__zz_decode_ENV_CTRL_2_88 = 1'b0;
-  assign _zz__zz_decode_ENV_CTRL_2_89 = ({_zz__zz_decode_ENV_CTRL_2_90,_zz__zz_decode_ENV_CTRL_2_92} != 4'b0000);
-  assign _zz__zz_decode_ENV_CTRL_2_97 = (_zz__zz_decode_ENV_CTRL_2_98 != _zz__zz_decode_ENV_CTRL_2_100);
-  assign _zz__zz_decode_ENV_CTRL_2_101 = {_zz__zz_decode_ENV_CTRL_2_102,{_zz__zz_decode_ENV_CTRL_2_106,_zz__zz_decode_ENV_CTRL_2_109}};
-  assign _zz__zz_decode_ENV_CTRL_2_64 = 32'h00002010;
-  assign _zz__zz_decode_ENV_CTRL_2_67 = ((decode_INSTRUCTION & 32'h0000000c) == 32'h00000004);
-  assign _zz__zz_decode_ENV_CTRL_2_68 = ((decode_INSTRUCTION & 32'h00000028) == 32'h0);
-  assign _zz__zz_decode_ENV_CTRL_2_76 = 32'h00000020;
-  assign _zz__zz_decode_ENV_CTRL_2_79 = (decode_INSTRUCTION & 32'h00006014);
-  assign _zz__zz_decode_ENV_CTRL_2_80 = 32'h00006010;
-  assign _zz__zz_decode_ENV_CTRL_2_82 = (decode_INSTRUCTION & 32'h00005014);
-  assign _zz__zz_decode_ENV_CTRL_2_83 = 32'h00004010;
-  assign _zz__zz_decode_ENV_CTRL_2_86 = (decode_INSTRUCTION & 32'h00006014);
-  assign _zz__zz_decode_ENV_CTRL_2_87 = 32'h00002010;
-  assign _zz__zz_decode_ENV_CTRL_2_90 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_91) == 32'h0);
-  assign _zz__zz_decode_ENV_CTRL_2_92 = {(_zz__zz_decode_ENV_CTRL_2_93 == _zz__zz_decode_ENV_CTRL_2_94),{_zz__zz_decode_ENV_CTRL_2_95,_zz__zz_decode_ENV_CTRL_2_96}};
-  assign _zz__zz_decode_ENV_CTRL_2_98 = ((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2_99) == 32'h0);
-  assign _zz__zz_decode_ENV_CTRL_2_100 = 1'b0;
-  assign _zz__zz_decode_ENV_CTRL_2_102 = ({_zz__zz_decode_ENV_CTRL_2_103,{_zz__zz_decode_ENV_CTRL_2_104,_zz__zz_decode_ENV_CTRL_2_105}} != 3'b000);
-  assign _zz__zz_decode_ENV_CTRL_2_106 = ({_zz__zz_decode_ENV_CTRL_2_107,_zz__zz_decode_ENV_CTRL_2_108} != 2'b00);
-  assign _zz__zz_decode_ENV_CTRL_2_109 = ({_zz__zz_decode_ENV_CTRL_2_110,_zz__zz_decode_ENV_CTRL_2_111} != 2'b00);
-  assign _zz__zz_decode_ENV_CTRL_2_91 = 32'h00000044;
-  assign _zz__zz_decode_ENV_CTRL_2_93 = (decode_INSTRUCTION & 32'h00000018);
-  assign _zz__zz_decode_ENV_CTRL_2_94 = 32'h0;
-  assign _zz__zz_decode_ENV_CTRL_2_95 = ((decode_INSTRUCTION & 32'h00006004) == 32'h00002000);
-  assign _zz__zz_decode_ENV_CTRL_2_96 = ((decode_INSTRUCTION & 32'h00005004) == 32'h00001000);
-  assign _zz__zz_decode_ENV_CTRL_2_99 = 32'h00000058;
-  assign _zz__zz_decode_ENV_CTRL_2_103 = ((decode_INSTRUCTION & 32'h00000044) == 32'h00000040);
-  assign _zz__zz_decode_ENV_CTRL_2_104 = ((decode_INSTRUCTION & 32'h00002014) == 32'h00002010);
-  assign _zz__zz_decode_ENV_CTRL_2_105 = ((decode_INSTRUCTION & 32'h40004034) == 32'h40000030);
-  assign _zz__zz_decode_ENV_CTRL_2_107 = ((decode_INSTRUCTION & 32'h00000014) == 32'h00000004);
-  assign _zz__zz_decode_ENV_CTRL_2_108 = _zz_decode_ENV_CTRL_3;
-  assign _zz__zz_decode_ENV_CTRL_2_110 = ((decode_INSTRUCTION & 32'h00000044) == 32'h00000004);
-  assign _zz__zz_decode_ENV_CTRL_2_111 = _zz_decode_ENV_CTRL_3;
+  assign _zz_IBusCachedPlugin_predictionJumpInterface_payload_4 = decode_INSTRUCTION[31];
+  assign _zz_IBusCachedPlugin_predictionJumpInterface_payload_5 = decode_INSTRUCTION[31];
+  assign _zz_IBusCachedPlugin_predictionJumpInterface_payload_6 = decode_INSTRUCTION[7];
+  assign _zz__zz_decode_IS_DIV = 32'h10103050;
+  assign _zz__zz_decode_IS_DIV_1 = (decode_INSTRUCTION & 32'h02004064);
+  assign _zz__zz_decode_IS_DIV_2 = 32'h02004020;
+  assign _zz__zz_decode_IS_DIV_3 = _zz_decode_IS_DIV_6;
+  assign _zz__zz_decode_IS_DIV_4 = _zz_decode_IS_DIV_5;
+  assign _zz__zz_decode_IS_DIV_5 = {_zz_decode_IS_DIV_6,{_zz_decode_IS_DIV_4,_zz_decode_IS_DIV_5}};
+  assign _zz__zz_decode_IS_DIV_6 = 3'b000;
+  assign _zz__zz_decode_IS_DIV_7 = (((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_8) == 32'h02000030) != 1'b0);
+  assign _zz__zz_decode_IS_DIV_9 = ((_zz__zz_decode_IS_DIV_10 == _zz__zz_decode_IS_DIV_11) != 1'b0);
+  assign _zz__zz_decode_IS_DIV_12 = {(_zz__zz_decode_IS_DIV_13 != 1'b0),{(_zz__zz_decode_IS_DIV_14 != _zz__zz_decode_IS_DIV_19),{_zz__zz_decode_IS_DIV_20,{_zz__zz_decode_IS_DIV_22,_zz__zz_decode_IS_DIV_24}}}};
+  assign _zz__zz_decode_IS_DIV_8 = 32'h02004074;
+  assign _zz__zz_decode_IS_DIV_10 = (decode_INSTRUCTION & 32'h10103050);
+  assign _zz__zz_decode_IS_DIV_11 = 32'h00000050;
+  assign _zz__zz_decode_IS_DIV_13 = ((decode_INSTRUCTION & 32'h10403050) == 32'h10000050);
+  assign _zz__zz_decode_IS_DIV_14 = {(_zz__zz_decode_IS_DIV_15 == _zz__zz_decode_IS_DIV_16),(_zz__zz_decode_IS_DIV_17 == _zz__zz_decode_IS_DIV_18)};
+  assign _zz__zz_decode_IS_DIV_19 = 2'b00;
+  assign _zz__zz_decode_IS_DIV_20 = ({_zz_decode_IS_DIV_3,_zz__zz_decode_IS_DIV_21} != 2'b00);
+  assign _zz__zz_decode_IS_DIV_22 = (_zz__zz_decode_IS_DIV_23 != 1'b0);
+  assign _zz__zz_decode_IS_DIV_24 = {(_zz__zz_decode_IS_DIV_25 != _zz__zz_decode_IS_DIV_30),{_zz__zz_decode_IS_DIV_31,{_zz__zz_decode_IS_DIV_40,_zz__zz_decode_IS_DIV_47}}};
+  assign _zz__zz_decode_IS_DIV_15 = (decode_INSTRUCTION & 32'h00001050);
+  assign _zz__zz_decode_IS_DIV_16 = 32'h00001050;
+  assign _zz__zz_decode_IS_DIV_17 = (decode_INSTRUCTION & 32'h00002050);
+  assign _zz__zz_decode_IS_DIV_18 = 32'h00002050;
+  assign _zz__zz_decode_IS_DIV_21 = ((decode_INSTRUCTION & 32'h0000001c) == 32'h00000004);
+  assign _zz__zz_decode_IS_DIV_23 = ((decode_INSTRUCTION & 32'h00000058) == 32'h00000040);
+  assign _zz__zz_decode_IS_DIV_25 = {(_zz__zz_decode_IS_DIV_26 == _zz__zz_decode_IS_DIV_27),(_zz__zz_decode_IS_DIV_28 == _zz__zz_decode_IS_DIV_29)};
+  assign _zz__zz_decode_IS_DIV_30 = 2'b00;
+  assign _zz__zz_decode_IS_DIV_31 = ({_zz__zz_decode_IS_DIV_32,{_zz__zz_decode_IS_DIV_34,_zz__zz_decode_IS_DIV_37}} != 3'b000);
+  assign _zz__zz_decode_IS_DIV_40 = ({_zz__zz_decode_IS_DIV_41,_zz__zz_decode_IS_DIV_44} != 3'b000);
+  assign _zz__zz_decode_IS_DIV_47 = {(_zz__zz_decode_IS_DIV_48 != _zz__zz_decode_IS_DIV_51),{_zz__zz_decode_IS_DIV_52,{_zz__zz_decode_IS_DIV_53,_zz__zz_decode_IS_DIV_60}}};
+  assign _zz__zz_decode_IS_DIV_26 = (decode_INSTRUCTION & 32'h00007034);
+  assign _zz__zz_decode_IS_DIV_27 = 32'h00005010;
+  assign _zz__zz_decode_IS_DIV_28 = (decode_INSTRUCTION & 32'h02007064);
+  assign _zz__zz_decode_IS_DIV_29 = 32'h00005020;
+  assign _zz__zz_decode_IS_DIV_32 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_33) == 32'h40001010);
+  assign _zz__zz_decode_IS_DIV_34 = (_zz__zz_decode_IS_DIV_35 == _zz__zz_decode_IS_DIV_36);
+  assign _zz__zz_decode_IS_DIV_37 = (_zz__zz_decode_IS_DIV_38 == _zz__zz_decode_IS_DIV_39);
+  assign _zz__zz_decode_IS_DIV_41 = (_zz__zz_decode_IS_DIV_42 == _zz__zz_decode_IS_DIV_43);
+  assign _zz__zz_decode_IS_DIV_44 = {_zz__zz_decode_IS_DIV_45,_zz__zz_decode_IS_DIV_46};
+  assign _zz__zz_decode_IS_DIV_48 = (_zz__zz_decode_IS_DIV_49 == _zz__zz_decode_IS_DIV_50);
+  assign _zz__zz_decode_IS_DIV_51 = 1'b0;
+  assign _zz__zz_decode_IS_DIV_52 = (_zz_decode_IS_DIV_4 != 1'b0);
+  assign _zz__zz_decode_IS_DIV_53 = (_zz__zz_decode_IS_DIV_54 != _zz__zz_decode_IS_DIV_59);
+  assign _zz__zz_decode_IS_DIV_60 = {_zz__zz_decode_IS_DIV_61,{_zz__zz_decode_IS_DIV_64,_zz__zz_decode_IS_DIV_72}};
+  assign _zz__zz_decode_IS_DIV_33 = 32'h40003054;
+  assign _zz__zz_decode_IS_DIV_35 = (decode_INSTRUCTION & 32'h00007034);
+  assign _zz__zz_decode_IS_DIV_36 = 32'h00001010;
+  assign _zz__zz_decode_IS_DIV_38 = (decode_INSTRUCTION & 32'h02007054);
+  assign _zz__zz_decode_IS_DIV_39 = 32'h00001010;
+  assign _zz__zz_decode_IS_DIV_42 = (decode_INSTRUCTION & 32'h00000064);
+  assign _zz__zz_decode_IS_DIV_43 = 32'h00000024;
+  assign _zz__zz_decode_IS_DIV_45 = ((decode_INSTRUCTION & 32'h00003034) == 32'h00001010);
+  assign _zz__zz_decode_IS_DIV_46 = ((decode_INSTRUCTION & 32'h02003054) == 32'h00001010);
+  assign _zz__zz_decode_IS_DIV_49 = (decode_INSTRUCTION & 32'h00001000);
+  assign _zz__zz_decode_IS_DIV_50 = 32'h00001000;
+  assign _zz__zz_decode_IS_DIV_54 = {(_zz__zz_decode_IS_DIV_55 == _zz__zz_decode_IS_DIV_56),(_zz__zz_decode_IS_DIV_57 == _zz__zz_decode_IS_DIV_58)};
+  assign _zz__zz_decode_IS_DIV_59 = 2'b00;
+  assign _zz__zz_decode_IS_DIV_61 = ({_zz__zz_decode_IS_DIV_62,_zz__zz_decode_IS_DIV_63} != 2'b00);
+  assign _zz__zz_decode_IS_DIV_64 = ({_zz__zz_decode_IS_DIV_65,_zz__zz_decode_IS_DIV_67} != 3'b000);
+  assign _zz__zz_decode_IS_DIV_72 = {(_zz__zz_decode_IS_DIV_73 != _zz__zz_decode_IS_DIV_75),{_zz__zz_decode_IS_DIV_76,{_zz__zz_decode_IS_DIV_79,_zz__zz_decode_IS_DIV_86}}};
+  assign _zz__zz_decode_IS_DIV_55 = (decode_INSTRUCTION & 32'h00002010);
+  assign _zz__zz_decode_IS_DIV_56 = 32'h00002000;
+  assign _zz__zz_decode_IS_DIV_57 = (decode_INSTRUCTION & 32'h00005000);
+  assign _zz__zz_decode_IS_DIV_58 = 32'h00001000;
+  assign _zz__zz_decode_IS_DIV_62 = ((decode_INSTRUCTION & 32'h00000034) == 32'h00000020);
+  assign _zz__zz_decode_IS_DIV_63 = ((decode_INSTRUCTION & 32'h00000064) == 32'h00000020);
+  assign _zz__zz_decode_IS_DIV_65 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_66) == 32'h00000040);
+  assign _zz__zz_decode_IS_DIV_67 = {(_zz__zz_decode_IS_DIV_68 == _zz__zz_decode_IS_DIV_69),(_zz__zz_decode_IS_DIV_70 == _zz__zz_decode_IS_DIV_71)};
+  assign _zz__zz_decode_IS_DIV_73 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_74) == 32'h00000020);
+  assign _zz__zz_decode_IS_DIV_75 = 1'b0;
+  assign _zz__zz_decode_IS_DIV_76 = ((_zz__zz_decode_IS_DIV_77 == _zz__zz_decode_IS_DIV_78) != 1'b0);
+  assign _zz__zz_decode_IS_DIV_79 = ({_zz__zz_decode_IS_DIV_80,_zz__zz_decode_IS_DIV_81} != 3'b000);
+  assign _zz__zz_decode_IS_DIV_86 = {(_zz__zz_decode_IS_DIV_87 != _zz__zz_decode_IS_DIV_102),{_zz__zz_decode_IS_DIV_103,{_zz__zz_decode_IS_DIV_106,_zz__zz_decode_IS_DIV_111}}};
+  assign _zz__zz_decode_IS_DIV_66 = 32'h00000050;
+  assign _zz__zz_decode_IS_DIV_68 = (decode_INSTRUCTION & 32'h00000038);
+  assign _zz__zz_decode_IS_DIV_69 = 32'h0;
+  assign _zz__zz_decode_IS_DIV_70 = (decode_INSTRUCTION & 32'h00103040);
+  assign _zz__zz_decode_IS_DIV_71 = 32'h00000040;
+  assign _zz__zz_decode_IS_DIV_74 = 32'h00000020;
+  assign _zz__zz_decode_IS_DIV_77 = (decode_INSTRUCTION & 32'h00000010);
+  assign _zz__zz_decode_IS_DIV_78 = 32'h00000010;
+  assign _zz__zz_decode_IS_DIV_80 = _zz_decode_IS_DIV_2;
+  assign _zz__zz_decode_IS_DIV_81 = {(_zz__zz_decode_IS_DIV_82 == _zz__zz_decode_IS_DIV_83),(_zz__zz_decode_IS_DIV_84 == _zz__zz_decode_IS_DIV_85)};
+  assign _zz__zz_decode_IS_DIV_87 = {_zz_decode_IS_DIV_3,{_zz__zz_decode_IS_DIV_88,{_zz__zz_decode_IS_DIV_90,_zz__zz_decode_IS_DIV_93}}};
+  assign _zz__zz_decode_IS_DIV_102 = 6'h0;
+  assign _zz__zz_decode_IS_DIV_103 = ({_zz_decode_IS_DIV_2,_zz__zz_decode_IS_DIV_104} != 2'b00);
+  assign _zz__zz_decode_IS_DIV_106 = ({_zz__zz_decode_IS_DIV_107,_zz__zz_decode_IS_DIV_108} != 2'b00);
+  assign _zz__zz_decode_IS_DIV_111 = {(_zz__zz_decode_IS_DIV_112 != _zz__zz_decode_IS_DIV_117),{_zz__zz_decode_IS_DIV_118,{_zz__zz_decode_IS_DIV_121,_zz__zz_decode_IS_DIV_132}}};
+  assign _zz__zz_decode_IS_DIV_82 = (decode_INSTRUCTION & 32'h00000030);
+  assign _zz__zz_decode_IS_DIV_83 = 32'h00000010;
+  assign _zz__zz_decode_IS_DIV_84 = (decode_INSTRUCTION & 32'h02000060);
+  assign _zz__zz_decode_IS_DIV_85 = 32'h00000020;
+  assign _zz__zz_decode_IS_DIV_88 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_89) == 32'h00001010);
+  assign _zz__zz_decode_IS_DIV_90 = (_zz__zz_decode_IS_DIV_91 == _zz__zz_decode_IS_DIV_92);
+  assign _zz__zz_decode_IS_DIV_93 = {_zz__zz_decode_IS_DIV_94,{_zz__zz_decode_IS_DIV_96,_zz__zz_decode_IS_DIV_99}};
+  assign _zz__zz_decode_IS_DIV_104 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_105) == 32'h00000020);
+  assign _zz__zz_decode_IS_DIV_107 = _zz_decode_IS_DIV_2;
+  assign _zz__zz_decode_IS_DIV_108 = (_zz__zz_decode_IS_DIV_109 == _zz__zz_decode_IS_DIV_110);
+  assign _zz__zz_decode_IS_DIV_112 = {_zz__zz_decode_IS_DIV_113,_zz__zz_decode_IS_DIV_115};
+  assign _zz__zz_decode_IS_DIV_117 = 2'b00;
+  assign _zz__zz_decode_IS_DIV_118 = (_zz__zz_decode_IS_DIV_119 != 1'b0);
+  assign _zz__zz_decode_IS_DIV_121 = (_zz__zz_decode_IS_DIV_122 != _zz__zz_decode_IS_DIV_131);
+  assign _zz__zz_decode_IS_DIV_132 = {_zz__zz_decode_IS_DIV_133,{_zz__zz_decode_IS_DIV_135,_zz__zz_decode_IS_DIV_142}};
+  assign _zz__zz_decode_IS_DIV_89 = 32'h00001010;
+  assign _zz__zz_decode_IS_DIV_91 = (decode_INSTRUCTION & 32'h00002010);
+  assign _zz__zz_decode_IS_DIV_92 = 32'h00002010;
+  assign _zz__zz_decode_IS_DIV_94 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_95) == 32'h00000010);
+  assign _zz__zz_decode_IS_DIV_96 = (_zz__zz_decode_IS_DIV_97 == _zz__zz_decode_IS_DIV_98);
+  assign _zz__zz_decode_IS_DIV_99 = (_zz__zz_decode_IS_DIV_100 == _zz__zz_decode_IS_DIV_101);
+  assign _zz__zz_decode_IS_DIV_105 = 32'h00000070;
+  assign _zz__zz_decode_IS_DIV_109 = (decode_INSTRUCTION & 32'h00000020);
+  assign _zz__zz_decode_IS_DIV_110 = 32'h0;
+  assign _zz__zz_decode_IS_DIV_113 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_114) == 32'h00006010);
+  assign _zz__zz_decode_IS_DIV_115 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_116) == 32'h00004010);
+  assign _zz__zz_decode_IS_DIV_119 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_120) == 32'h00002010);
+  assign _zz__zz_decode_IS_DIV_122 = {_zz__zz_decode_IS_DIV_123,{_zz__zz_decode_IS_DIV_124,_zz__zz_decode_IS_DIV_126}};
+  assign _zz__zz_decode_IS_DIV_131 = 4'b0000;
+  assign _zz__zz_decode_IS_DIV_133 = (_zz__zz_decode_IS_DIV_134 != 1'b0);
+  assign _zz__zz_decode_IS_DIV_135 = (_zz__zz_decode_IS_DIV_136 != _zz__zz_decode_IS_DIV_141);
+  assign _zz__zz_decode_IS_DIV_142 = {_zz__zz_decode_IS_DIV_143,{_zz__zz_decode_IS_DIV_145,_zz__zz_decode_IS_DIV_148}};
+  assign _zz__zz_decode_IS_DIV_95 = 32'h00000050;
+  assign _zz__zz_decode_IS_DIV_97 = (decode_INSTRUCTION & 32'h0000000c);
+  assign _zz__zz_decode_IS_DIV_98 = 32'h00000004;
+  assign _zz__zz_decode_IS_DIV_100 = (decode_INSTRUCTION & 32'h00000028);
+  assign _zz__zz_decode_IS_DIV_101 = 32'h0;
+  assign _zz__zz_decode_IS_DIV_114 = 32'h00006014;
+  assign _zz__zz_decode_IS_DIV_116 = 32'h00005014;
+  assign _zz__zz_decode_IS_DIV_120 = 32'h00006014;
+  assign _zz__zz_decode_IS_DIV_123 = ((decode_INSTRUCTION & 32'h00000044) == 32'h0);
+  assign _zz__zz_decode_IS_DIV_124 = ((decode_INSTRUCTION & _zz__zz_decode_IS_DIV_125) == 32'h0);
+  assign _zz__zz_decode_IS_DIV_126 = {(_zz__zz_decode_IS_DIV_127 == _zz__zz_decode_IS_DIV_128),(_zz__zz_decode_IS_DIV_129 == _zz__zz_decode_IS_DIV_130)};
+  assign _zz__zz_decode_IS_DIV_134 = ((decode_INSTRUCTION & 32'h00000058) == 32'h0);
+  assign _zz__zz_decode_IS_DIV_136 = {(_zz__zz_decode_IS_DIV_137 == _zz__zz_decode_IS_DIV_138),{_zz__zz_decode_IS_DIV_139,_zz__zz_decode_IS_DIV_140}};
+  assign _zz__zz_decode_IS_DIV_141 = 3'b000;
+  assign _zz__zz_decode_IS_DIV_143 = ({_zz__zz_decode_IS_DIV_144,_zz_decode_IS_DIV_1} != 2'b00);
+  assign _zz__zz_decode_IS_DIV_145 = ({_zz__zz_decode_IS_DIV_146,_zz__zz_decode_IS_DIV_147} != 2'b00);
+  assign _zz__zz_decode_IS_DIV_148 = (_zz__zz_decode_IS_DIV_149 != 1'b0);
+  assign _zz__zz_decode_IS_DIV_125 = 32'h00000018;
+  assign _zz__zz_decode_IS_DIV_127 = (decode_INSTRUCTION & 32'h00006004);
+  assign _zz__zz_decode_IS_DIV_128 = 32'h00002000;
+  assign _zz__zz_decode_IS_DIV_129 = (decode_INSTRUCTION & 32'h00005004);
+  assign _zz__zz_decode_IS_DIV_130 = 32'h00001000;
+  assign _zz__zz_decode_IS_DIV_137 = (decode_INSTRUCTION & 32'h00000044);
+  assign _zz__zz_decode_IS_DIV_138 = 32'h00000040;
+  assign _zz__zz_decode_IS_DIV_139 = ((decode_INSTRUCTION & 32'h00002014) == 32'h00002010);
+  assign _zz__zz_decode_IS_DIV_140 = ((decode_INSTRUCTION & 32'h40004034) == 32'h40000030);
+  assign _zz__zz_decode_IS_DIV_144 = ((decode_INSTRUCTION & 32'h00000014) == 32'h00000004);
+  assign _zz__zz_decode_IS_DIV_146 = ((decode_INSTRUCTION & 32'h00000044) == 32'h00000004);
+  assign _zz__zz_decode_IS_DIV_147 = _zz_decode_IS_DIV_1;
+  assign _zz__zz_decode_IS_DIV_149 = ((decode_INSTRUCTION & 32'h00001048) == 32'h00001008);
+  assign _zz_execute_BranchPlugin_branch_src2_6 = execute_INSTRUCTION[31];
+  assign _zz_execute_BranchPlugin_branch_src2_7 = execute_INSTRUCTION[31];
+  assign _zz_execute_BranchPlugin_branch_src2_8 = execute_INSTRUCTION[7];
   always @(posedge clk) begin
     if(_zz_decode_RegFilePlugin_rs1Data) begin
       _zz_RegFilePlugin_regFile_port0 <= RegFilePlugin_regFile[decode_RegFilePlugin_regFileReadAddress1];
@@ -1228,20 +1511,64 @@ module VexRiscv (
     end
   end
 
-  StreamFifoLowLatency IBusSimplePlugin_rspJoin_rspBuffer_c (
-    .io_push_valid            (iBus_rsp_valid                                             ), //i
-    .io_push_ready            (IBusSimplePlugin_rspJoin_rspBuffer_c_io_push_ready         ), //o
-    .io_push_payload_error    (iBus_rsp_payload_error                                     ), //i
-    .io_push_payload_inst     (iBus_rsp_payload_inst                                      ), //i
-    .io_pop_valid             (IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_valid          ), //o
-    .io_pop_ready             (IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_ready          ), //i
-    .io_pop_payload_error     (IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_payload_error  ), //o
-    .io_pop_payload_inst      (IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_payload_inst   ), //o
-    .io_flush                 (1'b0                                                       ), //i
-    .io_occupancy             (IBusSimplePlugin_rspJoin_rspBuffer_c_io_occupancy          ), //o
-    .clk                      (clk                                                        ), //i
-    .reset                    (reset                                                      )  //i
+  InstructionCache IBusCachedPlugin_cache (
+    .io_flush                                 (IBusCachedPlugin_cache_io_flush                       ), //i
+    .io_cpu_prefetch_isValid                  (IBusCachedPlugin_cache_io_cpu_prefetch_isValid        ), //i
+    .io_cpu_prefetch_haltIt                   (IBusCachedPlugin_cache_io_cpu_prefetch_haltIt         ), //o
+    .io_cpu_prefetch_pc                       (IBusCachedPlugin_iBusRsp_stages_0_input_payload       ), //i
+    .io_cpu_fetch_isValid                     (IBusCachedPlugin_cache_io_cpu_fetch_isValid           ), //i
+    .io_cpu_fetch_isStuck                     (IBusCachedPlugin_cache_io_cpu_fetch_isStuck           ), //i
+    .io_cpu_fetch_isRemoved                   (IBusCachedPlugin_cache_io_cpu_fetch_isRemoved         ), //i
+    .io_cpu_fetch_pc                          (IBusCachedPlugin_iBusRsp_stages_1_input_payload       ), //i
+    .io_cpu_fetch_data                        (IBusCachedPlugin_cache_io_cpu_fetch_data              ), //o
+    .io_cpu_fetch_mmuRsp_physicalAddress      (IBusCachedPlugin_mmuBus_rsp_physicalAddress           ), //i
+    .io_cpu_fetch_mmuRsp_isIoAccess           (IBusCachedPlugin_mmuBus_rsp_isIoAccess                ), //i
+    .io_cpu_fetch_mmuRsp_isPaging             (IBusCachedPlugin_mmuBus_rsp_isPaging                  ), //i
+    .io_cpu_fetch_mmuRsp_allowRead            (IBusCachedPlugin_mmuBus_rsp_allowRead                 ), //i
+    .io_cpu_fetch_mmuRsp_allowWrite           (IBusCachedPlugin_mmuBus_rsp_allowWrite                ), //i
+    .io_cpu_fetch_mmuRsp_allowExecute         (IBusCachedPlugin_mmuBus_rsp_allowExecute              ), //i
+    .io_cpu_fetch_mmuRsp_exception            (IBusCachedPlugin_mmuBus_rsp_exception                 ), //i
+    .io_cpu_fetch_mmuRsp_refilling            (IBusCachedPlugin_mmuBus_rsp_refilling                 ), //i
+    .io_cpu_fetch_mmuRsp_bypassTranslation    (IBusCachedPlugin_mmuBus_rsp_bypassTranslation         ), //i
+    .io_cpu_fetch_physicalAddress             (IBusCachedPlugin_cache_io_cpu_fetch_physicalAddress   ), //o
+    .io_cpu_decode_isValid                    (IBusCachedPlugin_cache_io_cpu_decode_isValid          ), //i
+    .io_cpu_decode_isStuck                    (IBusCachedPlugin_cache_io_cpu_decode_isStuck          ), //i
+    .io_cpu_decode_pc                         (IBusCachedPlugin_iBusRsp_stages_2_input_payload       ), //i
+    .io_cpu_decode_physicalAddress            (IBusCachedPlugin_cache_io_cpu_decode_physicalAddress  ), //o
+    .io_cpu_decode_data                       (IBusCachedPlugin_cache_io_cpu_decode_data             ), //o
+    .io_cpu_decode_cacheMiss                  (IBusCachedPlugin_cache_io_cpu_decode_cacheMiss        ), //o
+    .io_cpu_decode_error                      (IBusCachedPlugin_cache_io_cpu_decode_error            ), //o
+    .io_cpu_decode_mmuRefilling               (IBusCachedPlugin_cache_io_cpu_decode_mmuRefilling     ), //o
+    .io_cpu_decode_mmuException               (IBusCachedPlugin_cache_io_cpu_decode_mmuException     ), //o
+    .io_cpu_decode_isUser                     (IBusCachedPlugin_cache_io_cpu_decode_isUser           ), //i
+    .io_cpu_fill_valid                        (IBusCachedPlugin_cache_io_cpu_fill_valid              ), //i
+    .io_cpu_fill_payload                      (IBusCachedPlugin_cache_io_cpu_decode_physicalAddress  ), //i
+    .io_mem_cmd_valid                         (IBusCachedPlugin_cache_io_mem_cmd_valid               ), //o
+    .io_mem_cmd_ready                         (iBus_cmd_ready                                        ), //i
+    .io_mem_cmd_payload_address               (IBusCachedPlugin_cache_io_mem_cmd_payload_address     ), //o
+    .io_mem_cmd_payload_size                  (IBusCachedPlugin_cache_io_mem_cmd_payload_size        ), //o
+    .io_mem_rsp_valid                         (iBus_rsp_valid                                        ), //i
+    .io_mem_rsp_payload_data                  (iBus_rsp_payload_data                                 ), //i
+    .io_mem_rsp_payload_error                 (iBus_rsp_payload_error                                ), //i
+    ._zz_when_Fetcher_l398                    (switch_Fetcher_l362                                   ), //i
+    ._zz_io_cpu_fetch_data_regNextWhen        (IBusCachedPlugin_injectionPort_payload                ), //i
+    .clk                                      (clk                                                   ), //i
+    .reset                                    (reset                                                 )  //i
   );
+  always @(*) begin
+    case(_zz_IBusCachedPlugin_jump_pcLoad_payload_5)
+      2'b00 : begin
+        _zz_IBusCachedPlugin_jump_pcLoad_payload_4 = CsrPlugin_jumpInterface_payload;
+      end
+      2'b01 : begin
+        _zz_IBusCachedPlugin_jump_pcLoad_payload_4 = BranchPlugin_jumpInterface_payload;
+      end
+      default : begin
+        _zz_IBusCachedPlugin_jump_pcLoad_payload_4 = IBusCachedPlugin_predictionJumpInterface_payload;
+      end
+    endcase
+  end
+
   `ifndef SYNTHESIS
   always @(*) begin
     case(_zz_memory_to_writeBack_ENV_CTRL)
@@ -1305,24 +1632,6 @@ module VexRiscv (
       `EnvCtrlEnum_binary_sequential_XRET : _zz_decode_to_execute_ENV_CTRL_1_string = "XRET ";
       `EnvCtrlEnum_binary_sequential_ECALL : _zz_decode_to_execute_ENV_CTRL_1_string = "ECALL";
       default : _zz_decode_to_execute_ENV_CTRL_1_string = "?????";
-    endcase
-  end
-  always @(*) begin
-    case(decode_BRANCH_CTRL)
-      `BranchCtrlEnum_binary_sequential_INC : decode_BRANCH_CTRL_string = "INC ";
-      `BranchCtrlEnum_binary_sequential_B : decode_BRANCH_CTRL_string = "B   ";
-      `BranchCtrlEnum_binary_sequential_JAL : decode_BRANCH_CTRL_string = "JAL ";
-      `BranchCtrlEnum_binary_sequential_JALR : decode_BRANCH_CTRL_string = "JALR";
-      default : decode_BRANCH_CTRL_string = "????";
-    endcase
-  end
-  always @(*) begin
-    case(_zz_decode_BRANCH_CTRL)
-      `BranchCtrlEnum_binary_sequential_INC : _zz_decode_BRANCH_CTRL_string = "INC ";
-      `BranchCtrlEnum_binary_sequential_B : _zz_decode_BRANCH_CTRL_string = "B   ";
-      `BranchCtrlEnum_binary_sequential_JAL : _zz_decode_BRANCH_CTRL_string = "JAL ";
-      `BranchCtrlEnum_binary_sequential_JALR : _zz_decode_BRANCH_CTRL_string = "JALR";
-      default : _zz_decode_BRANCH_CTRL_string = "????";
     endcase
   end
   always @(*) begin
@@ -1676,12 +1985,12 @@ module VexRiscv (
     endcase
   end
   always @(*) begin
-    case(_zz_decode_BRANCH_CTRL_1)
-      `BranchCtrlEnum_binary_sequential_INC : _zz_decode_BRANCH_CTRL_1_string = "INC ";
-      `BranchCtrlEnum_binary_sequential_B : _zz_decode_BRANCH_CTRL_1_string = "B   ";
-      `BranchCtrlEnum_binary_sequential_JAL : _zz_decode_BRANCH_CTRL_1_string = "JAL ";
-      `BranchCtrlEnum_binary_sequential_JALR : _zz_decode_BRANCH_CTRL_1_string = "JALR";
-      default : _zz_decode_BRANCH_CTRL_1_string = "????";
+    case(_zz_decode_BRANCH_CTRL)
+      `BranchCtrlEnum_binary_sequential_INC : _zz_decode_BRANCH_CTRL_string = "INC ";
+      `BranchCtrlEnum_binary_sequential_B : _zz_decode_BRANCH_CTRL_string = "B   ";
+      `BranchCtrlEnum_binary_sequential_JAL : _zz_decode_BRANCH_CTRL_string = "JAL ";
+      `BranchCtrlEnum_binary_sequential_JALR : _zz_decode_BRANCH_CTRL_string = "JALR";
+      default : _zz_decode_BRANCH_CTRL_string = "????";
     endcase
   end
   always @(*) begin
@@ -1725,6 +2034,24 @@ module VexRiscv (
       `Src1CtrlEnum_binary_sequential_PC_INCREMENT : _zz_decode_SRC1_CTRL_1_string = "PC_INCREMENT";
       `Src1CtrlEnum_binary_sequential_URS1 : _zz_decode_SRC1_CTRL_1_string = "URS1        ";
       default : _zz_decode_SRC1_CTRL_1_string = "????????????";
+    endcase
+  end
+  always @(*) begin
+    case(decode_BRANCH_CTRL)
+      `BranchCtrlEnum_binary_sequential_INC : decode_BRANCH_CTRL_string = "INC ";
+      `BranchCtrlEnum_binary_sequential_B : decode_BRANCH_CTRL_string = "B   ";
+      `BranchCtrlEnum_binary_sequential_JAL : decode_BRANCH_CTRL_string = "JAL ";
+      `BranchCtrlEnum_binary_sequential_JALR : decode_BRANCH_CTRL_string = "JALR";
+      default : decode_BRANCH_CTRL_string = "????";
+    endcase
+  end
+  always @(*) begin
+    case(_zz_decode_BRANCH_CTRL_1)
+      `BranchCtrlEnum_binary_sequential_INC : _zz_decode_BRANCH_CTRL_1_string = "INC ";
+      `BranchCtrlEnum_binary_sequential_B : _zz_decode_BRANCH_CTRL_1_string = "B   ";
+      `BranchCtrlEnum_binary_sequential_JAL : _zz_decode_BRANCH_CTRL_1_string = "JAL ";
+      `BranchCtrlEnum_binary_sequential_JALR : _zz_decode_BRANCH_CTRL_1_string = "JALR";
+      default : _zz_decode_BRANCH_CTRL_1_string = "????";
     endcase
   end
   always @(*) begin
@@ -1780,11 +2107,11 @@ module VexRiscv (
     endcase
   end
   always @(*) begin
-    case(_zz_decode_ENV_CTRL_7)
-      `EnvCtrlEnum_binary_sequential_NONE : _zz_decode_ENV_CTRL_7_string = "NONE ";
-      `EnvCtrlEnum_binary_sequential_XRET : _zz_decode_ENV_CTRL_7_string = "XRET ";
-      `EnvCtrlEnum_binary_sequential_ECALL : _zz_decode_ENV_CTRL_7_string = "ECALL";
-      default : _zz_decode_ENV_CTRL_7_string = "?????";
+    case(_zz_decode_ENV_CTRL_2)
+      `EnvCtrlEnum_binary_sequential_NONE : _zz_decode_ENV_CTRL_2_string = "NONE ";
+      `EnvCtrlEnum_binary_sequential_XRET : _zz_decode_ENV_CTRL_2_string = "XRET ";
+      `EnvCtrlEnum_binary_sequential_ECALL : _zz_decode_ENV_CTRL_2_string = "ECALL";
+      default : _zz_decode_ENV_CTRL_2_string = "?????";
     endcase
   end
   always @(*) begin
@@ -1867,38 +2194,40 @@ module VexRiscv (
 
   assign memory_MEMORY_READ_DATA = dBus_rsp_data;
   assign execute_BRANCH_CALC = {execute_BranchPlugin_branchAdder[31 : 1],1'b0};
-  assign execute_BRANCH_DO = _zz_execute_BRANCH_DO_1;
+  assign execute_BRANCH_DO = ((execute_PREDICTION_HAD_BRANCHED2 != execute_BRANCH_COND_RESULT) || execute_BranchPlugin_missAlignedTarget);
   assign writeBack_REGFILE_WRITE_DATA = memory_to_writeBack_REGFILE_WRITE_DATA;
   assign execute_REGFILE_WRITE_DATA = _zz_execute_REGFILE_WRITE_DATA;
   assign memory_MEMORY_ADDRESS_LOW = execute_to_memory_MEMORY_ADDRESS_LOW;
   assign execute_MEMORY_ADDRESS_LOW = dBus_cmd_payload_address[1 : 0];
-  assign decode_DO_EBREAK = (((! DebugPlugin_haltIt) && (decode_IS_EBREAK || 1'b0)) && DebugPlugin_allowEBreak);
+  assign decode_DO_EBREAK = (((! DebugPlugin_haltIt) && (decode_IS_EBREAK || ((1'b0 || (DebugPlugin_hardwareBreakpoints_0_valid && (DebugPlugin_hardwareBreakpoints_0_pc == _zz_decode_DO_EBREAK))) || (DebugPlugin_hardwareBreakpoints_1_valid && (DebugPlugin_hardwareBreakpoints_1_pc == _zz_decode_DO_EBREAK_1))))) && DebugPlugin_allowEBreak);
   assign decode_CSR_READ_OPCODE = (decode_INSTRUCTION[13 : 7] != 7'h20);
   assign decode_CSR_WRITE_OPCODE = (! (((decode_INSTRUCTION[14 : 13] == 2'b01) && (decode_INSTRUCTION[19 : 15] == 5'h0)) || ((decode_INSTRUCTION[14 : 13] == 2'b11) && (decode_INSTRUCTION[19 : 15] == 5'h0))));
+  assign decode_PREDICTION_HAD_BRANCHED2 = IBusCachedPlugin_decodePrediction_cmd_hadBranch;
   assign decode_SRC2_FORCE_ZERO = (decode_SRC_ADD_ZERO && (! decode_SRC_USE_SUB_LESS));
-  assign decode_RS2 = decode_RegFilePlugin_rs2Data;
-  assign decode_RS1 = decode_RegFilePlugin_rs1Data;
+  assign decode_IS_DIV = _zz_decode_IS_DIV[30];
+  assign decode_IS_RS2_SIGNED = _zz_decode_IS_DIV[29];
+  assign decode_IS_RS1_SIGNED = _zz_decode_IS_DIV[28];
+  assign decode_IS_MUL = _zz_decode_IS_DIV[27];
   assign _zz_memory_to_writeBack_ENV_CTRL = _zz_memory_to_writeBack_ENV_CTRL_1;
   assign _zz_execute_to_memory_ENV_CTRL = _zz_execute_to_memory_ENV_CTRL_1;
   assign decode_ENV_CTRL = _zz_decode_ENV_CTRL;
   assign _zz_decode_to_execute_ENV_CTRL = _zz_decode_to_execute_ENV_CTRL_1;
-  assign decode_IS_CSR = _zz_decode_ENV_CTRL_2[23];
-  assign decode_BRANCH_CTRL = _zz_decode_BRANCH_CTRL;
+  assign decode_IS_CSR = _zz_decode_IS_DIV[24];
   assign _zz_decode_to_execute_BRANCH_CTRL = _zz_decode_to_execute_BRANCH_CTRL_1;
   assign decode_SHIFT_CTRL = _zz_decode_SHIFT_CTRL;
   assign _zz_decode_to_execute_SHIFT_CTRL = _zz_decode_to_execute_SHIFT_CTRL_1;
   assign decode_ALU_BITWISE_CTRL = _zz_decode_ALU_BITWISE_CTRL;
   assign _zz_decode_to_execute_ALU_BITWISE_CTRL = _zz_decode_to_execute_ALU_BITWISE_CTRL_1;
-  assign decode_SRC_LESS_UNSIGNED = _zz_decode_ENV_CTRL_2[15];
-  assign decode_MEMORY_STORE = _zz_decode_ENV_CTRL_2[12];
+  assign decode_SRC_LESS_UNSIGNED = _zz_decode_IS_DIV[16];
+  assign decode_MEMORY_STORE = _zz_decode_IS_DIV[13];
   assign execute_BYPASSABLE_MEMORY_STAGE = decode_to_execute_BYPASSABLE_MEMORY_STAGE;
-  assign decode_BYPASSABLE_MEMORY_STAGE = _zz_decode_ENV_CTRL_2[11];
-  assign decode_BYPASSABLE_EXECUTE_STAGE = _zz_decode_ENV_CTRL_2[10];
+  assign decode_BYPASSABLE_MEMORY_STAGE = _zz_decode_IS_DIV[12];
+  assign decode_BYPASSABLE_EXECUTE_STAGE = _zz_decode_IS_DIV[11];
   assign decode_SRC2_CTRL = _zz_decode_SRC2_CTRL;
   assign _zz_decode_to_execute_SRC2_CTRL = _zz_decode_to_execute_SRC2_CTRL_1;
   assign decode_ALU_CTRL = _zz_decode_ALU_CTRL;
   assign _zz_decode_to_execute_ALU_CTRL = _zz_decode_to_execute_ALU_CTRL_1;
-  assign decode_MEMORY_ENABLE = _zz_decode_ENV_CTRL_2[3];
+  assign decode_MEMORY_ENABLE = _zz_decode_IS_DIV[4];
   assign decode_SRC1_CTRL = _zz_decode_SRC1_CTRL;
   assign _zz_decode_to_execute_SRC1_CTRL = _zz_decode_to_execute_SRC1_CTRL_1;
   assign writeBack_FORMAL_PC_NEXT = memory_to_writeBack_FORMAL_PC_NEXT;
@@ -1907,7 +2236,13 @@ module VexRiscv (
   assign decode_FORMAL_PC_NEXT = (decode_PC + 32'h00000004);
   assign memory_PC = execute_to_memory_PC;
   assign execute_DO_EBREAK = decode_to_execute_DO_EBREAK;
-  assign decode_IS_EBREAK = _zz_decode_ENV_CTRL_2[26];
+  assign decode_IS_EBREAK = _zz_decode_IS_DIV[31];
+  assign execute_IS_RS1_SIGNED = decode_to_execute_IS_RS1_SIGNED;
+  assign execute_IS_DIV = decode_to_execute_IS_DIV;
+  assign execute_IS_MUL = decode_to_execute_IS_MUL;
+  assign execute_IS_RS2_SIGNED = decode_to_execute_IS_RS2_SIGNED;
+  assign memory_IS_DIV = execute_to_memory_IS_DIV;
+  assign memory_IS_MUL = execute_to_memory_IS_MUL;
   assign execute_CSR_READ_OPCODE = decode_to_execute_CSR_READ_OPCODE;
   assign execute_CSR_WRITE_OPCODE = decode_to_execute_CSR_WRITE_OPCODE;
   assign execute_IS_CSR = decode_to_execute_IS_CSR;
@@ -1917,23 +2252,95 @@ module VexRiscv (
   assign memory_BRANCH_CALC = execute_to_memory_BRANCH_CALC;
   assign memory_BRANCH_DO = execute_to_memory_BRANCH_DO;
   assign execute_PC = decode_to_execute_PC;
+  assign execute_PREDICTION_HAD_BRANCHED2 = decode_to_execute_PREDICTION_HAD_BRANCHED2;
   assign execute_RS1 = decode_to_execute_RS1;
+  assign execute_BRANCH_COND_RESULT = _zz_execute_BRANCH_COND_RESULT_1;
   assign execute_BRANCH_CTRL = _zz_execute_BRANCH_CTRL;
-  assign decode_RS2_USE = _zz_decode_ENV_CTRL_2[14];
-  assign decode_RS1_USE = _zz_decode_ENV_CTRL_2[4];
+  assign decode_RS2_USE = _zz_decode_IS_DIV[15];
+  assign decode_RS1_USE = _zz_decode_IS_DIV[5];
   assign execute_REGFILE_WRITE_VALID = decode_to_execute_REGFILE_WRITE_VALID;
   assign execute_BYPASSABLE_EXECUTE_STAGE = decode_to_execute_BYPASSABLE_EXECUTE_STAGE;
+  always @(*) begin
+    _zz_decode_RS2 = memory_REGFILE_WRITE_DATA;
+    if(when_MulDivIterativePlugin_l96) begin
+      _zz_decode_RS2 = ((memory_INSTRUCTION[13 : 12] == 2'b00) ? memory_MulDivIterativePlugin_accumulator[31 : 0] : memory_MulDivIterativePlugin_accumulator[63 : 32]);
+    end
+    if(when_MulDivIterativePlugin_l128) begin
+      _zz_decode_RS2 = memory_MulDivIterativePlugin_div_result;
+    end
+  end
+
   assign memory_REGFILE_WRITE_VALID = execute_to_memory_REGFILE_WRITE_VALID;
   assign memory_INSTRUCTION = execute_to_memory_INSTRUCTION;
   assign memory_BYPASSABLE_MEMORY_STAGE = execute_to_memory_BYPASSABLE_MEMORY_STAGE;
   assign writeBack_REGFILE_WRITE_VALID = memory_to_writeBack_REGFILE_WRITE_VALID;
   always @(*) begin
-    _zz_execute_to_memory_REGFILE_WRITE_DATA = execute_REGFILE_WRITE_DATA;
+    decode_RS2 = decode_RegFilePlugin_rs2Data;
+    if(HazardSimplePlugin_writeBackBuffer_valid) begin
+      if(HazardSimplePlugin_addr1Match) begin
+        decode_RS2 = HazardSimplePlugin_writeBackBuffer_payload_data;
+      end
+    end
+    if(when_HazardSimplePlugin_l45) begin
+      if(when_HazardSimplePlugin_l47) begin
+        if(when_HazardSimplePlugin_l51) begin
+          decode_RS2 = _zz_decode_RS2_2;
+        end
+      end
+    end
+    if(when_HazardSimplePlugin_l45_1) begin
+      if(memory_BYPASSABLE_MEMORY_STAGE) begin
+        if(when_HazardSimplePlugin_l51_1) begin
+          decode_RS2 = _zz_decode_RS2;
+        end
+      end
+    end
+    if(when_HazardSimplePlugin_l45_2) begin
+      if(execute_BYPASSABLE_EXECUTE_STAGE) begin
+        if(when_HazardSimplePlugin_l51_2) begin
+          decode_RS2 = _zz_decode_RS2_1;
+        end
+      end
+    end
+  end
+
+  always @(*) begin
+    decode_RS1 = decode_RegFilePlugin_rs1Data;
+    if(HazardSimplePlugin_writeBackBuffer_valid) begin
+      if(HazardSimplePlugin_addr0Match) begin
+        decode_RS1 = HazardSimplePlugin_writeBackBuffer_payload_data;
+      end
+    end
+    if(when_HazardSimplePlugin_l45) begin
+      if(when_HazardSimplePlugin_l47) begin
+        if(when_HazardSimplePlugin_l48) begin
+          decode_RS1 = _zz_decode_RS2_2;
+        end
+      end
+    end
+    if(when_HazardSimplePlugin_l45_1) begin
+      if(memory_BYPASSABLE_MEMORY_STAGE) begin
+        if(when_HazardSimplePlugin_l48_1) begin
+          decode_RS1 = _zz_decode_RS2;
+        end
+      end
+    end
+    if(when_HazardSimplePlugin_l45_2) begin
+      if(execute_BYPASSABLE_EXECUTE_STAGE) begin
+        if(when_HazardSimplePlugin_l48_2) begin
+          decode_RS1 = _zz_decode_RS2_1;
+        end
+      end
+    end
+  end
+
+  always @(*) begin
+    _zz_decode_RS2_1 = execute_REGFILE_WRITE_DATA;
     if(when_ShiftPlugins_l169) begin
-      _zz_execute_to_memory_REGFILE_WRITE_DATA = _zz_execute_to_memory_REGFILE_WRITE_DATA_1;
+      _zz_decode_RS2_1 = _zz_decode_RS2_3;
     end
     if(when_CsrPlugin_l1176) begin
-      _zz_execute_to_memory_REGFILE_WRITE_DATA = CsrPlugin_csrMapping_readDataSignal;
+      _zz_decode_RS2_1 = CsrPlugin_csrMapping_readDataSignal;
     end
   end
 
@@ -1944,8 +2351,8 @@ module VexRiscv (
   assign _zz_execute_SRC2 = execute_PC;
   assign execute_SRC2_CTRL = _zz_execute_SRC2_CTRL;
   assign execute_SRC1_CTRL = _zz_execute_SRC1_CTRL;
-  assign decode_SRC_USE_SUB_LESS = _zz_decode_ENV_CTRL_2[2];
-  assign decode_SRC_ADD_ZERO = _zz_decode_ENV_CTRL_2[18];
+  assign decode_SRC_USE_SUB_LESS = _zz_decode_IS_DIV[3];
+  assign decode_SRC_ADD_ZERO = _zz_decode_IS_DIV[19];
   assign execute_SRC_ADD_SUB = execute_SrcPlugin_addSub;
   assign execute_SRC_LESS = execute_SrcPlugin_less;
   assign execute_ALU_CTRL = _zz_execute_ALU_CTRL;
@@ -1961,9 +2368,9 @@ module VexRiscv (
     end
   end
 
-  assign decode_INSTRUCTION_ANTICIPATED = (decode_arbitration_isStuck ? decode_INSTRUCTION : IBusSimplePlugin_iBusRsp_output_payload_rsp_inst);
+  assign decode_INSTRUCTION_ANTICIPATED = (decode_arbitration_isStuck ? decode_INSTRUCTION : IBusCachedPlugin_cache_io_cpu_fetch_data);
   always @(*) begin
-    decode_REGFILE_WRITE_VALID = _zz_decode_ENV_CTRL_2[9];
+    decode_REGFILE_WRITE_VALID = _zz_decode_IS_DIV[10];
     if(when_RegFilePlugin_l63) begin
       decode_REGFILE_WRITE_VALID = 1'b0;
     end
@@ -1972,9 +2379,9 @@ module VexRiscv (
   assign decode_LEGAL_INSTRUCTION = ({((decode_INSTRUCTION & 32'h0000005f) == 32'h00000017),{((decode_INSTRUCTION & 32'h0000007f) == 32'h0000006f),{((decode_INSTRUCTION & 32'h0000106f) == 32'h00000003),{((decode_INSTRUCTION & _zz_decode_LEGAL_INSTRUCTION) == 32'h00001073),{(_zz_decode_LEGAL_INSTRUCTION_1 == _zz_decode_LEGAL_INSTRUCTION_2),{_zz_decode_LEGAL_INSTRUCTION_3,{_zz_decode_LEGAL_INSTRUCTION_4,_zz_decode_LEGAL_INSTRUCTION_5}}}}}}} != 20'h0);
   assign writeBack_MEMORY_STORE = memory_to_writeBack_MEMORY_STORE;
   always @(*) begin
-    _zz_lastStageRegFileWrite_payload_data = writeBack_REGFILE_WRITE_DATA;
+    _zz_decode_RS2_2 = writeBack_REGFILE_WRITE_DATA;
     if(when_DBusSimplePlugin_l558) begin
-      _zz_lastStageRegFileWrite_payload_data = writeBack_DBusSimplePlugin_rspFormated;
+      _zz_decode_RS2_2 = writeBack_DBusSimplePlugin_rspFormated;
     end
   end
 
@@ -1991,6 +2398,37 @@ module VexRiscv (
   assign execute_MEMORY_STORE = decode_to_execute_MEMORY_STORE;
   assign execute_MEMORY_ENABLE = decode_to_execute_MEMORY_ENABLE;
   assign execute_ALIGNEMENT_FAULT = (((dBus_cmd_payload_size == 2'b10) && (dBus_cmd_payload_address[1 : 0] != 2'b00)) || ((dBus_cmd_payload_size == 2'b01) && (dBus_cmd_payload_address[0 : 0] != 1'b0)));
+  assign decode_FLUSH_ALL = _zz_decode_IS_DIV[0];
+  always @(*) begin
+    IBusCachedPlugin_rsp_issueDetected_4 = IBusCachedPlugin_rsp_issueDetected_3;
+    if(when_IBusCachedPlugin_l256) begin
+      IBusCachedPlugin_rsp_issueDetected_4 = 1'b1;
+    end
+  end
+
+  always @(*) begin
+    IBusCachedPlugin_rsp_issueDetected_3 = IBusCachedPlugin_rsp_issueDetected_2;
+    if(when_IBusCachedPlugin_l250) begin
+      IBusCachedPlugin_rsp_issueDetected_3 = 1'b1;
+    end
+  end
+
+  always @(*) begin
+    IBusCachedPlugin_rsp_issueDetected_2 = IBusCachedPlugin_rsp_issueDetected_1;
+    if(when_IBusCachedPlugin_l244) begin
+      IBusCachedPlugin_rsp_issueDetected_2 = 1'b1;
+    end
+  end
+
+  always @(*) begin
+    IBusCachedPlugin_rsp_issueDetected_1 = IBusCachedPlugin_rsp_issueDetected;
+    if(when_IBusCachedPlugin_l239) begin
+      IBusCachedPlugin_rsp_issueDetected_1 = 1'b1;
+    end
+  end
+
+  assign decode_BRANCH_CTRL = _zz_decode_BRANCH_CTRL_1;
+  assign decode_INSTRUCTION = IBusCachedPlugin_iBusRsp_output_payload_rsp_inst;
   always @(*) begin
     _zz_memory_to_writeBack_FORMAL_PC_NEXT = memory_FORMAL_PC_NEXT;
     if(BranchPlugin_jumpInterface_valid) begin
@@ -1998,8 +2436,14 @@ module VexRiscv (
     end
   end
 
-  assign decode_PC = IBusSimplePlugin_injector_decodeInput_payload_pc;
-  assign decode_INSTRUCTION = IBusSimplePlugin_injector_decodeInput_payload_rsp_inst;
+  always @(*) begin
+    _zz_decode_to_execute_FORMAL_PC_NEXT = decode_FORMAL_PC_NEXT;
+    if(IBusCachedPlugin_predictionJumpInterface_valid) begin
+      _zz_decode_to_execute_FORMAL_PC_NEXT = IBusCachedPlugin_predictionJumpInterface_payload;
+    end
+  end
+
+  assign decode_PC = IBusCachedPlugin_iBusRsp_output_payload_pc;
   assign writeBack_PC = memory_to_writeBack_PC;
   assign writeBack_INSTRUCTION = memory_to_writeBack_INSTRUCTION;
   always @(*) begin
@@ -2028,7 +2472,7 @@ module VexRiscv (
 
   always @(*) begin
     decode_arbitration_removeIt = 1'b0;
-    if(decodeExceptionPort_valid) begin
+    if(_zz_when) begin
       decode_arbitration_removeIt = 1'b1;
     end
     if(decode_arbitration_isFlushed) begin
@@ -2039,7 +2483,10 @@ module VexRiscv (
   assign decode_arbitration_flushIt = 1'b0;
   always @(*) begin
     decode_arbitration_flushNext = 1'b0;
-    if(decodeExceptionPort_valid) begin
+    if(IBusCachedPlugin_predictionJumpInterface_valid) begin
+      decode_arbitration_flushNext = 1'b1;
+    end
+    if(_zz_when) begin
       decode_arbitration_flushNext = 1'b1;
     end
   end
@@ -2104,12 +2551,25 @@ module VexRiscv (
     if(when_DBusSimplePlugin_l479) begin
       memory_arbitration_haltItself = 1'b1;
     end
+    if(when_MulDivIterativePlugin_l96) begin
+      if(when_MulDivIterativePlugin_l97) begin
+        memory_arbitration_haltItself = 1'b1;
+      end
+      if(when_MulDivIterativePlugin_l100) begin
+        memory_arbitration_haltItself = 1'b1;
+      end
+    end
+    if(when_MulDivIterativePlugin_l128) begin
+      if(when_MulDivIterativePlugin_l129) begin
+        memory_arbitration_haltItself = 1'b1;
+      end
+    end
   end
 
   assign memory_arbitration_haltByOther = 1'b0;
   always @(*) begin
     memory_arbitration_removeIt = 1'b0;
-    if(_zz_when) begin
+    if(_zz_when_1) begin
       memory_arbitration_removeIt = 1'b1;
     end
     if(memory_arbitration_isFlushed) begin
@@ -2123,7 +2583,7 @@ module VexRiscv (
     if(BranchPlugin_jumpInterface_valid) begin
       memory_arbitration_flushNext = 1'b1;
     end
-    if(_zz_when) begin
+    if(_zz_when_1) begin
       memory_arbitration_flushNext = 1'b1;
     end
   end
@@ -2153,36 +2613,33 @@ module VexRiscv (
   assign lastStageIsValid = writeBack_arbitration_isValid;
   assign lastStageIsFiring = writeBack_arbitration_isFiring;
   always @(*) begin
-    IBusSimplePlugin_fetcherHalt = 1'b0;
+    IBusCachedPlugin_fetcherHalt = 1'b0;
     if(when_CsrPlugin_l922) begin
-      IBusSimplePlugin_fetcherHalt = 1'b1;
+      IBusCachedPlugin_fetcherHalt = 1'b1;
     end
     if(when_CsrPlugin_l1019) begin
-      IBusSimplePlugin_fetcherHalt = 1'b1;
+      IBusCachedPlugin_fetcherHalt = 1'b1;
     end
     if(when_CsrPlugin_l1064) begin
-      IBusSimplePlugin_fetcherHalt = 1'b1;
+      IBusCachedPlugin_fetcherHalt = 1'b1;
     end
     if(when_DebugPlugin_l284) begin
       if(when_DebugPlugin_l287) begin
-        IBusSimplePlugin_fetcherHalt = 1'b1;
+        IBusCachedPlugin_fetcherHalt = 1'b1;
       end
     end
     if(DebugPlugin_haltIt) begin
-      IBusSimplePlugin_fetcherHalt = 1'b1;
+      IBusCachedPlugin_fetcherHalt = 1'b1;
     end
     if(when_DebugPlugin_l300) begin
-      IBusSimplePlugin_fetcherHalt = 1'b1;
+      IBusCachedPlugin_fetcherHalt = 1'b1;
     end
   end
 
   always @(*) begin
-    IBusSimplePlugin_incomingInstruction = 1'b0;
-    if(IBusSimplePlugin_iBusRsp_stages_1_input_valid) begin
-      IBusSimplePlugin_incomingInstruction = 1'b1;
-    end
-    if(IBusSimplePlugin_injector_decodeInput_valid) begin
-      IBusSimplePlugin_incomingInstruction = 1'b1;
+    IBusCachedPlugin_incomingInstruction = 1'b0;
+    if(when_Fetcher_l240) begin
+      IBusCachedPlugin_incomingInstruction = 1'b1;
     end
   end
 
@@ -2250,103 +2707,138 @@ module VexRiscv (
     end
   end
 
-  assign IBusSimplePlugin_externalFlush = ({writeBack_arbitration_flushNext,{memory_arbitration_flushNext,{execute_arbitration_flushNext,decode_arbitration_flushNext}}} != 4'b0000);
-  assign IBusSimplePlugin_jump_pcLoad_valid = ({CsrPlugin_jumpInterface_valid,BranchPlugin_jumpInterface_valid} != 2'b00);
-  assign _zz_IBusSimplePlugin_jump_pcLoad_payload = {BranchPlugin_jumpInterface_valid,CsrPlugin_jumpInterface_valid};
-  assign IBusSimplePlugin_jump_pcLoad_payload = (_zz_IBusSimplePlugin_jump_pcLoad_payload_1[0] ? CsrPlugin_jumpInterface_payload : BranchPlugin_jumpInterface_payload);
+  assign IBusCachedPlugin_externalFlush = ({writeBack_arbitration_flushNext,{memory_arbitration_flushNext,{execute_arbitration_flushNext,decode_arbitration_flushNext}}} != 4'b0000);
+  assign IBusCachedPlugin_jump_pcLoad_valid = ({CsrPlugin_jumpInterface_valid,{BranchPlugin_jumpInterface_valid,IBusCachedPlugin_predictionJumpInterface_valid}} != 3'b000);
+  assign _zz_IBusCachedPlugin_jump_pcLoad_payload = {IBusCachedPlugin_predictionJumpInterface_valid,{BranchPlugin_jumpInterface_valid,CsrPlugin_jumpInterface_valid}};
+  assign _zz_IBusCachedPlugin_jump_pcLoad_payload_1 = (_zz_IBusCachedPlugin_jump_pcLoad_payload & (~ _zz__zz_IBusCachedPlugin_jump_pcLoad_payload_1));
+  assign _zz_IBusCachedPlugin_jump_pcLoad_payload_2 = _zz_IBusCachedPlugin_jump_pcLoad_payload_1[1];
+  assign _zz_IBusCachedPlugin_jump_pcLoad_payload_3 = _zz_IBusCachedPlugin_jump_pcLoad_payload_1[2];
+  assign IBusCachedPlugin_jump_pcLoad_payload = _zz_IBusCachedPlugin_jump_pcLoad_payload_4;
   always @(*) begin
-    IBusSimplePlugin_fetchPc_correction = 1'b0;
-    if(IBusSimplePlugin_jump_pcLoad_valid) begin
-      IBusSimplePlugin_fetchPc_correction = 1'b1;
+    IBusCachedPlugin_fetchPc_correction = 1'b0;
+    if(IBusCachedPlugin_fetchPc_redo_valid) begin
+      IBusCachedPlugin_fetchPc_correction = 1'b1;
+    end
+    if(IBusCachedPlugin_jump_pcLoad_valid) begin
+      IBusCachedPlugin_fetchPc_correction = 1'b1;
     end
   end
 
-  assign IBusSimplePlugin_fetchPc_output_fire = (IBusSimplePlugin_fetchPc_output_valid && IBusSimplePlugin_fetchPc_output_ready);
-  assign IBusSimplePlugin_fetchPc_corrected = (IBusSimplePlugin_fetchPc_correction || IBusSimplePlugin_fetchPc_correctionReg);
+  assign IBusCachedPlugin_fetchPc_output_fire = (IBusCachedPlugin_fetchPc_output_valid && IBusCachedPlugin_fetchPc_output_ready);
+  assign IBusCachedPlugin_fetchPc_corrected = (IBusCachedPlugin_fetchPc_correction || IBusCachedPlugin_fetchPc_correctionReg);
   always @(*) begin
-    IBusSimplePlugin_fetchPc_pcRegPropagate = 1'b0;
-    if(IBusSimplePlugin_iBusRsp_stages_1_input_ready) begin
-      IBusSimplePlugin_fetchPc_pcRegPropagate = 1'b1;
+    IBusCachedPlugin_fetchPc_pcRegPropagate = 1'b0;
+    if(IBusCachedPlugin_iBusRsp_stages_1_input_ready) begin
+      IBusCachedPlugin_fetchPc_pcRegPropagate = 1'b1;
     end
   end
 
-  assign when_Fetcher_l131 = (IBusSimplePlugin_fetchPc_correction || IBusSimplePlugin_fetchPc_pcRegPropagate);
-  assign IBusSimplePlugin_fetchPc_output_fire_1 = (IBusSimplePlugin_fetchPc_output_valid && IBusSimplePlugin_fetchPc_output_ready);
-  assign when_Fetcher_l131_1 = ((! IBusSimplePlugin_fetchPc_output_valid) && IBusSimplePlugin_fetchPc_output_ready);
+  assign when_Fetcher_l131 = (IBusCachedPlugin_fetchPc_correction || IBusCachedPlugin_fetchPc_pcRegPropagate);
+  assign IBusCachedPlugin_fetchPc_output_fire_1 = (IBusCachedPlugin_fetchPc_output_valid && IBusCachedPlugin_fetchPc_output_ready);
+  assign when_Fetcher_l131_1 = ((! IBusCachedPlugin_fetchPc_output_valid) && IBusCachedPlugin_fetchPc_output_ready);
   always @(*) begin
-    IBusSimplePlugin_fetchPc_pc = (IBusSimplePlugin_fetchPc_pcReg + _zz_IBusSimplePlugin_fetchPc_pc);
-    if(IBusSimplePlugin_jump_pcLoad_valid) begin
-      IBusSimplePlugin_fetchPc_pc = IBusSimplePlugin_jump_pcLoad_payload;
+    IBusCachedPlugin_fetchPc_pc = (IBusCachedPlugin_fetchPc_pcReg + _zz_IBusCachedPlugin_fetchPc_pc);
+    if(IBusCachedPlugin_fetchPc_redo_valid) begin
+      IBusCachedPlugin_fetchPc_pc = IBusCachedPlugin_fetchPc_redo_payload;
     end
-    IBusSimplePlugin_fetchPc_pc[0] = 1'b0;
-    IBusSimplePlugin_fetchPc_pc[1] = 1'b0;
+    if(IBusCachedPlugin_jump_pcLoad_valid) begin
+      IBusCachedPlugin_fetchPc_pc = IBusCachedPlugin_jump_pcLoad_payload;
+    end
+    IBusCachedPlugin_fetchPc_pc[0] = 1'b0;
+    IBusCachedPlugin_fetchPc_pc[1] = 1'b0;
   end
 
   always @(*) begin
-    IBusSimplePlugin_fetchPc_flushed = 1'b0;
-    if(IBusSimplePlugin_jump_pcLoad_valid) begin
-      IBusSimplePlugin_fetchPc_flushed = 1'b1;
+    IBusCachedPlugin_fetchPc_flushed = 1'b0;
+    if(IBusCachedPlugin_fetchPc_redo_valid) begin
+      IBusCachedPlugin_fetchPc_flushed = 1'b1;
+    end
+    if(IBusCachedPlugin_jump_pcLoad_valid) begin
+      IBusCachedPlugin_fetchPc_flushed = 1'b1;
     end
   end
 
-  assign when_Fetcher_l158 = (IBusSimplePlugin_fetchPc_booted && ((IBusSimplePlugin_fetchPc_output_ready || IBusSimplePlugin_fetchPc_correction) || IBusSimplePlugin_fetchPc_pcRegPropagate));
-  assign IBusSimplePlugin_fetchPc_output_valid = ((! IBusSimplePlugin_fetcherHalt) && IBusSimplePlugin_fetchPc_booted);
-  assign IBusSimplePlugin_fetchPc_output_payload = IBusSimplePlugin_fetchPc_pc;
-  assign IBusSimplePlugin_iBusRsp_redoFetch = 1'b0;
-  assign IBusSimplePlugin_iBusRsp_stages_0_input_valid = IBusSimplePlugin_fetchPc_output_valid;
-  assign IBusSimplePlugin_fetchPc_output_ready = IBusSimplePlugin_iBusRsp_stages_0_input_ready;
-  assign IBusSimplePlugin_iBusRsp_stages_0_input_payload = IBusSimplePlugin_fetchPc_output_payload;
+  assign when_Fetcher_l158 = (IBusCachedPlugin_fetchPc_booted && ((IBusCachedPlugin_fetchPc_output_ready || IBusCachedPlugin_fetchPc_correction) || IBusCachedPlugin_fetchPc_pcRegPropagate));
+  assign IBusCachedPlugin_fetchPc_output_valid = ((! IBusCachedPlugin_fetcherHalt) && IBusCachedPlugin_fetchPc_booted);
+  assign IBusCachedPlugin_fetchPc_output_payload = IBusCachedPlugin_fetchPc_pc;
   always @(*) begin
-    IBusSimplePlugin_iBusRsp_stages_0_halt = 1'b0;
-    if(when_IBusSimplePlugin_l304) begin
-      IBusSimplePlugin_iBusRsp_stages_0_halt = 1'b1;
+    IBusCachedPlugin_iBusRsp_redoFetch = 1'b0;
+    if(IBusCachedPlugin_rsp_redoFetch) begin
+      IBusCachedPlugin_iBusRsp_redoFetch = 1'b1;
     end
   end
 
-  assign _zz_IBusSimplePlugin_iBusRsp_stages_0_input_ready = (! IBusSimplePlugin_iBusRsp_stages_0_halt);
-  assign IBusSimplePlugin_iBusRsp_stages_0_input_ready = (IBusSimplePlugin_iBusRsp_stages_0_output_ready && _zz_IBusSimplePlugin_iBusRsp_stages_0_input_ready);
-  assign IBusSimplePlugin_iBusRsp_stages_0_output_valid = (IBusSimplePlugin_iBusRsp_stages_0_input_valid && _zz_IBusSimplePlugin_iBusRsp_stages_0_input_ready);
-  assign IBusSimplePlugin_iBusRsp_stages_0_output_payload = IBusSimplePlugin_iBusRsp_stages_0_input_payload;
-  assign IBusSimplePlugin_iBusRsp_stages_1_halt = 1'b0;
-  assign _zz_IBusSimplePlugin_iBusRsp_stages_1_input_ready = (! IBusSimplePlugin_iBusRsp_stages_1_halt);
-  assign IBusSimplePlugin_iBusRsp_stages_1_input_ready = (IBusSimplePlugin_iBusRsp_stages_1_output_ready && _zz_IBusSimplePlugin_iBusRsp_stages_1_input_ready);
-  assign IBusSimplePlugin_iBusRsp_stages_1_output_valid = (IBusSimplePlugin_iBusRsp_stages_1_input_valid && _zz_IBusSimplePlugin_iBusRsp_stages_1_input_ready);
-  assign IBusSimplePlugin_iBusRsp_stages_1_output_payload = IBusSimplePlugin_iBusRsp_stages_1_input_payload;
-  assign IBusSimplePlugin_iBusRsp_flush = (IBusSimplePlugin_externalFlush || IBusSimplePlugin_iBusRsp_redoFetch);
-  assign IBusSimplePlugin_iBusRsp_stages_0_output_ready = _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready;
-  assign _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready = ((1'b0 && (! _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_1)) || IBusSimplePlugin_iBusRsp_stages_1_input_ready);
-  assign _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_1 = _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_2;
-  assign IBusSimplePlugin_iBusRsp_stages_1_input_valid = _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_1;
-  assign IBusSimplePlugin_iBusRsp_stages_1_input_payload = IBusSimplePlugin_fetchPc_pcReg;
+  assign IBusCachedPlugin_iBusRsp_stages_0_input_valid = IBusCachedPlugin_fetchPc_output_valid;
+  assign IBusCachedPlugin_fetchPc_output_ready = IBusCachedPlugin_iBusRsp_stages_0_input_ready;
+  assign IBusCachedPlugin_iBusRsp_stages_0_input_payload = IBusCachedPlugin_fetchPc_output_payload;
   always @(*) begin
-    IBusSimplePlugin_iBusRsp_readyForError = 1'b1;
-    if(IBusSimplePlugin_injector_decodeInput_valid) begin
-      IBusSimplePlugin_iBusRsp_readyForError = 1'b0;
+    IBusCachedPlugin_iBusRsp_stages_0_halt = 1'b0;
+    if(IBusCachedPlugin_cache_io_cpu_prefetch_haltIt) begin
+      IBusCachedPlugin_iBusRsp_stages_0_halt = 1'b1;
     end
+  end
+
+  assign _zz_IBusCachedPlugin_iBusRsp_stages_0_input_ready = (! IBusCachedPlugin_iBusRsp_stages_0_halt);
+  assign IBusCachedPlugin_iBusRsp_stages_0_input_ready = (IBusCachedPlugin_iBusRsp_stages_0_output_ready && _zz_IBusCachedPlugin_iBusRsp_stages_0_input_ready);
+  assign IBusCachedPlugin_iBusRsp_stages_0_output_valid = (IBusCachedPlugin_iBusRsp_stages_0_input_valid && _zz_IBusCachedPlugin_iBusRsp_stages_0_input_ready);
+  assign IBusCachedPlugin_iBusRsp_stages_0_output_payload = IBusCachedPlugin_iBusRsp_stages_0_input_payload;
+  always @(*) begin
+    IBusCachedPlugin_iBusRsp_stages_1_halt = 1'b0;
+    if(IBusCachedPlugin_mmuBus_busy) begin
+      IBusCachedPlugin_iBusRsp_stages_1_halt = 1'b1;
+    end
+  end
+
+  assign _zz_IBusCachedPlugin_iBusRsp_stages_1_input_ready = (! IBusCachedPlugin_iBusRsp_stages_1_halt);
+  assign IBusCachedPlugin_iBusRsp_stages_1_input_ready = (IBusCachedPlugin_iBusRsp_stages_1_output_ready && _zz_IBusCachedPlugin_iBusRsp_stages_1_input_ready);
+  assign IBusCachedPlugin_iBusRsp_stages_1_output_valid = (IBusCachedPlugin_iBusRsp_stages_1_input_valid && _zz_IBusCachedPlugin_iBusRsp_stages_1_input_ready);
+  assign IBusCachedPlugin_iBusRsp_stages_1_output_payload = IBusCachedPlugin_iBusRsp_stages_1_input_payload;
+  always @(*) begin
+    IBusCachedPlugin_iBusRsp_stages_2_halt = 1'b0;
+    if(when_IBusCachedPlugin_l267) begin
+      IBusCachedPlugin_iBusRsp_stages_2_halt = 1'b1;
+    end
+  end
+
+  assign _zz_IBusCachedPlugin_iBusRsp_stages_2_input_ready = (! IBusCachedPlugin_iBusRsp_stages_2_halt);
+  assign IBusCachedPlugin_iBusRsp_stages_2_input_ready = (IBusCachedPlugin_iBusRsp_stages_2_output_ready && _zz_IBusCachedPlugin_iBusRsp_stages_2_input_ready);
+  assign IBusCachedPlugin_iBusRsp_stages_2_output_valid = (IBusCachedPlugin_iBusRsp_stages_2_input_valid && _zz_IBusCachedPlugin_iBusRsp_stages_2_input_ready);
+  assign IBusCachedPlugin_iBusRsp_stages_2_output_payload = IBusCachedPlugin_iBusRsp_stages_2_input_payload;
+  assign IBusCachedPlugin_fetchPc_redo_valid = IBusCachedPlugin_iBusRsp_redoFetch;
+  assign IBusCachedPlugin_fetchPc_redo_payload = IBusCachedPlugin_iBusRsp_stages_2_input_payload;
+  assign IBusCachedPlugin_iBusRsp_flush = ((decode_arbitration_removeIt || (decode_arbitration_flushNext && (! decode_arbitration_isStuck))) || IBusCachedPlugin_iBusRsp_redoFetch);
+  assign IBusCachedPlugin_iBusRsp_stages_0_output_ready = _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready;
+  assign _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready = ((1'b0 && (! _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_1)) || IBusCachedPlugin_iBusRsp_stages_1_input_ready);
+  assign _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_1 = _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_2;
+  assign IBusCachedPlugin_iBusRsp_stages_1_input_valid = _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_1;
+  assign IBusCachedPlugin_iBusRsp_stages_1_input_payload = IBusCachedPlugin_fetchPc_pcReg;
+  assign IBusCachedPlugin_iBusRsp_stages_1_output_ready = ((1'b0 && (! IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid)) || IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_ready);
+  assign IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid = _zz_IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid;
+  assign IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_payload = _zz_IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_payload;
+  assign IBusCachedPlugin_iBusRsp_stages_2_input_valid = IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid;
+  assign IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_ready = IBusCachedPlugin_iBusRsp_stages_2_input_ready;
+  assign IBusCachedPlugin_iBusRsp_stages_2_input_payload = IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_payload;
+  always @(*) begin
+    IBusCachedPlugin_iBusRsp_readyForError = 1'b1;
     if(when_Fetcher_l320) begin
-      IBusSimplePlugin_iBusRsp_readyForError = 1'b0;
+      IBusCachedPlugin_iBusRsp_readyForError = 1'b0;
     end
   end
 
-  assign IBusSimplePlugin_iBusRsp_output_ready = ((1'b0 && (! IBusSimplePlugin_injector_decodeInput_valid)) || IBusSimplePlugin_injector_decodeInput_ready);
-  assign IBusSimplePlugin_injector_decodeInput_valid = _zz_IBusSimplePlugin_injector_decodeInput_valid;
-  assign IBusSimplePlugin_injector_decodeInput_payload_pc = _zz_IBusSimplePlugin_injector_decodeInput_payload_pc;
-  assign IBusSimplePlugin_injector_decodeInput_payload_rsp_error = _zz_IBusSimplePlugin_injector_decodeInput_payload_rsp_error;
-  assign IBusSimplePlugin_injector_decodeInput_payload_rsp_inst = _zz_IBusSimplePlugin_injector_decodeInput_payload_rsp_inst;
-  assign IBusSimplePlugin_injector_decodeInput_payload_isRvc = _zz_IBusSimplePlugin_injector_decodeInput_payload_isRvc;
-  assign when_Fetcher_l320 = (! IBusSimplePlugin_pcValids_0);
-  assign when_Fetcher_l329 = (! (! IBusSimplePlugin_iBusRsp_stages_1_input_ready));
-  assign when_Fetcher_l329_1 = (! (! IBusSimplePlugin_injector_decodeInput_ready));
+  assign when_Fetcher_l240 = (IBusCachedPlugin_iBusRsp_stages_1_input_valid || IBusCachedPlugin_iBusRsp_stages_2_input_valid);
+  assign when_Fetcher_l320 = (! IBusCachedPlugin_pcValids_0);
+  assign when_Fetcher_l329 = (! (! IBusCachedPlugin_iBusRsp_stages_1_input_ready));
+  assign when_Fetcher_l329_1 = (! (! IBusCachedPlugin_iBusRsp_stages_2_input_ready));
   assign when_Fetcher_l329_2 = (! execute_arbitration_isStuck);
   assign when_Fetcher_l329_3 = (! memory_arbitration_isStuck);
   assign when_Fetcher_l329_4 = (! writeBack_arbitration_isStuck);
-  assign IBusSimplePlugin_pcValids_0 = IBusSimplePlugin_injector_nextPcCalc_valids_1;
-  assign IBusSimplePlugin_pcValids_1 = IBusSimplePlugin_injector_nextPcCalc_valids_2;
-  assign IBusSimplePlugin_pcValids_2 = IBusSimplePlugin_injector_nextPcCalc_valids_3;
-  assign IBusSimplePlugin_pcValids_3 = IBusSimplePlugin_injector_nextPcCalc_valids_4;
-  assign IBusSimplePlugin_injector_decodeInput_ready = (! decode_arbitration_isStuck);
+  assign IBusCachedPlugin_pcValids_0 = IBusCachedPlugin_injector_nextPcCalc_valids_1;
+  assign IBusCachedPlugin_pcValids_1 = IBusCachedPlugin_injector_nextPcCalc_valids_2;
+  assign IBusCachedPlugin_pcValids_2 = IBusCachedPlugin_injector_nextPcCalc_valids_3;
+  assign IBusCachedPlugin_pcValids_3 = IBusCachedPlugin_injector_nextPcCalc_valids_4;
+  assign IBusCachedPlugin_iBusRsp_output_ready = (! decode_arbitration_isStuck);
   always @(*) begin
-    decode_arbitration_isValid = IBusSimplePlugin_injector_decodeInput_valid;
+    decode_arbitration_isValid = IBusCachedPlugin_iBusRsp_output_valid;
     case(switch_Fetcher_l362)
       3'b010 : begin
         decode_arbitration_isValid = 1'b1;
@@ -2359,50 +2851,194 @@ module VexRiscv (
     endcase
   end
 
-  assign iBus_cmd_valid = IBusSimplePlugin_cmd_valid;
-  assign IBusSimplePlugin_cmd_ready = iBus_cmd_ready;
-  assign iBus_cmd_payload_pc = IBusSimplePlugin_cmd_payload_pc;
-  assign IBusSimplePlugin_pending_next = (_zz_IBusSimplePlugin_pending_next - _zz_IBusSimplePlugin_pending_next_3);
-  assign IBusSimplePlugin_cmdFork_canEmit = (IBusSimplePlugin_iBusRsp_stages_0_output_ready && (IBusSimplePlugin_pending_value != 3'b111));
-  assign when_IBusSimplePlugin_l304 = (IBusSimplePlugin_iBusRsp_stages_0_input_valid && ((! IBusSimplePlugin_cmdFork_canEmit) || (! IBusSimplePlugin_cmd_ready)));
-  assign IBusSimplePlugin_cmd_valid = (IBusSimplePlugin_iBusRsp_stages_0_input_valid && IBusSimplePlugin_cmdFork_canEmit);
-  assign IBusSimplePlugin_cmd_fire = (IBusSimplePlugin_cmd_valid && IBusSimplePlugin_cmd_ready);
-  assign IBusSimplePlugin_pending_inc = IBusSimplePlugin_cmd_fire;
-  assign IBusSimplePlugin_cmd_payload_pc = {IBusSimplePlugin_iBusRsp_stages_0_input_payload[31 : 2],2'b00};
-  assign IBusSimplePlugin_rspJoin_rspBuffer_flush = ((IBusSimplePlugin_rspJoin_rspBuffer_discardCounter != 3'b000) || IBusSimplePlugin_iBusRsp_flush);
-  assign IBusSimplePlugin_rspJoin_rspBuffer_output_valid = (IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_valid && (IBusSimplePlugin_rspJoin_rspBuffer_discardCounter == 3'b000));
-  assign IBusSimplePlugin_rspJoin_rspBuffer_output_payload_error = IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_payload_error;
-  assign IBusSimplePlugin_rspJoin_rspBuffer_output_payload_inst = IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_payload_inst;
-  assign IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_ready = (IBusSimplePlugin_rspJoin_rspBuffer_output_ready || IBusSimplePlugin_rspJoin_rspBuffer_flush);
-  assign IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_fire = (IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_valid && IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_ready);
-  assign IBusSimplePlugin_pending_dec = IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_fire;
-  assign IBusSimplePlugin_rspJoin_fetchRsp_pc = IBusSimplePlugin_iBusRsp_stages_1_output_payload;
+  assign _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch = _zz__zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch[11];
   always @(*) begin
-    IBusSimplePlugin_rspJoin_fetchRsp_rsp_error = IBusSimplePlugin_rspJoin_rspBuffer_output_payload_error;
-    if(when_IBusSimplePlugin_l375) begin
-      IBusSimplePlugin_rspJoin_fetchRsp_rsp_error = 1'b0;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[18] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[17] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[16] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[15] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[14] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[13] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[12] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[11] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[10] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[9] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[8] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[7] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[6] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[5] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[4] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[3] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[2] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[1] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+    _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_1[0] = _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch;
+  end
+
+  always @(*) begin
+    IBusCachedPlugin_decodePrediction_cmd_hadBranch = ((decode_BRANCH_CTRL == `BranchCtrlEnum_binary_sequential_JAL) || ((decode_BRANCH_CTRL == `BranchCtrlEnum_binary_sequential_B) && _zz_IBusCachedPlugin_decodePrediction_cmd_hadBranch_2[31]));
+    if(_zz_6) begin
+      IBusCachedPlugin_decodePrediction_cmd_hadBranch = 1'b0;
     end
   end
 
-  assign IBusSimplePlugin_rspJoin_fetchRsp_rsp_inst = IBusSimplePlugin_rspJoin_rspBuffer_output_payload_inst;
-  assign when_IBusSimplePlugin_l375 = (! IBusSimplePlugin_rspJoin_rspBuffer_output_valid);
-  assign IBusSimplePlugin_rspJoin_exceptionDetected = 1'b0;
-  assign IBusSimplePlugin_rspJoin_join_valid = (IBusSimplePlugin_iBusRsp_stages_1_output_valid && IBusSimplePlugin_rspJoin_rspBuffer_output_valid);
-  assign IBusSimplePlugin_rspJoin_join_payload_pc = IBusSimplePlugin_rspJoin_fetchRsp_pc;
-  assign IBusSimplePlugin_rspJoin_join_payload_rsp_error = IBusSimplePlugin_rspJoin_fetchRsp_rsp_error;
-  assign IBusSimplePlugin_rspJoin_join_payload_rsp_inst = IBusSimplePlugin_rspJoin_fetchRsp_rsp_inst;
-  assign IBusSimplePlugin_rspJoin_join_payload_isRvc = IBusSimplePlugin_rspJoin_fetchRsp_isRvc;
-  assign IBusSimplePlugin_rspJoin_join_fire = (IBusSimplePlugin_rspJoin_join_valid && IBusSimplePlugin_rspJoin_join_ready);
-  assign IBusSimplePlugin_iBusRsp_stages_1_output_ready = (IBusSimplePlugin_iBusRsp_stages_1_output_valid ? IBusSimplePlugin_rspJoin_join_fire : IBusSimplePlugin_rspJoin_join_ready);
-  assign IBusSimplePlugin_rspJoin_join_fire_1 = (IBusSimplePlugin_rspJoin_join_valid && IBusSimplePlugin_rspJoin_join_ready);
-  assign IBusSimplePlugin_rspJoin_rspBuffer_output_ready = IBusSimplePlugin_rspJoin_join_fire_1;
-  assign _zz_IBusSimplePlugin_iBusRsp_output_valid = (! IBusSimplePlugin_rspJoin_exceptionDetected);
-  assign IBusSimplePlugin_rspJoin_join_ready = (IBusSimplePlugin_iBusRsp_output_ready && _zz_IBusSimplePlugin_iBusRsp_output_valid);
-  assign IBusSimplePlugin_iBusRsp_output_valid = (IBusSimplePlugin_rspJoin_join_valid && _zz_IBusSimplePlugin_iBusRsp_output_valid);
-  assign IBusSimplePlugin_iBusRsp_output_payload_pc = IBusSimplePlugin_rspJoin_join_payload_pc;
-  assign IBusSimplePlugin_iBusRsp_output_payload_rsp_error = IBusSimplePlugin_rspJoin_join_payload_rsp_error;
-  assign IBusSimplePlugin_iBusRsp_output_payload_rsp_inst = IBusSimplePlugin_rspJoin_join_payload_rsp_inst;
-  assign IBusSimplePlugin_iBusRsp_output_payload_isRvc = IBusSimplePlugin_rspJoin_join_payload_isRvc;
+  assign _zz_2 = _zz__zz_2[19];
+  always @(*) begin
+    _zz_3[10] = _zz_2;
+    _zz_3[9] = _zz_2;
+    _zz_3[8] = _zz_2;
+    _zz_3[7] = _zz_2;
+    _zz_3[6] = _zz_2;
+    _zz_3[5] = _zz_2;
+    _zz_3[4] = _zz_2;
+    _zz_3[3] = _zz_2;
+    _zz_3[2] = _zz_2;
+    _zz_3[1] = _zz_2;
+    _zz_3[0] = _zz_2;
+  end
+
+  assign _zz_4 = _zz__zz_4[11];
+  always @(*) begin
+    _zz_5[18] = _zz_4;
+    _zz_5[17] = _zz_4;
+    _zz_5[16] = _zz_4;
+    _zz_5[15] = _zz_4;
+    _zz_5[14] = _zz_4;
+    _zz_5[13] = _zz_4;
+    _zz_5[12] = _zz_4;
+    _zz_5[11] = _zz_4;
+    _zz_5[10] = _zz_4;
+    _zz_5[9] = _zz_4;
+    _zz_5[8] = _zz_4;
+    _zz_5[7] = _zz_4;
+    _zz_5[6] = _zz_4;
+    _zz_5[5] = _zz_4;
+    _zz_5[4] = _zz_4;
+    _zz_5[3] = _zz_4;
+    _zz_5[2] = _zz_4;
+    _zz_5[1] = _zz_4;
+    _zz_5[0] = _zz_4;
+  end
+
+  always @(*) begin
+    case(decode_BRANCH_CTRL)
+      `BranchCtrlEnum_binary_sequential_JAL : begin
+        _zz_6 = _zz__zz_6[1];
+      end
+      default : begin
+        _zz_6 = _zz__zz_6_1[1];
+      end
+    endcase
+  end
+
+  assign IBusCachedPlugin_predictionJumpInterface_valid = (decode_arbitration_isValid && IBusCachedPlugin_decodePrediction_cmd_hadBranch);
+  assign _zz_IBusCachedPlugin_predictionJumpInterface_payload = _zz__zz_IBusCachedPlugin_predictionJumpInterface_payload[19];
+  always @(*) begin
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[10] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[9] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[8] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[7] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[6] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[5] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[4] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[3] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[2] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[1] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_1[0] = _zz_IBusCachedPlugin_predictionJumpInterface_payload;
+  end
+
+  assign _zz_IBusCachedPlugin_predictionJumpInterface_payload_2 = _zz__zz_IBusCachedPlugin_predictionJumpInterface_payload_2[11];
+  always @(*) begin
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[18] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[17] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[16] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[15] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[14] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[13] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[12] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[11] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[10] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[9] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[8] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[7] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[6] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[5] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[4] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[3] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[2] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[1] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+    _zz_IBusCachedPlugin_predictionJumpInterface_payload_3[0] = _zz_IBusCachedPlugin_predictionJumpInterface_payload_2;
+  end
+
+  assign IBusCachedPlugin_predictionJumpInterface_payload = (decode_PC + ((decode_BRANCH_CTRL == `BranchCtrlEnum_binary_sequential_JAL) ? {{_zz_IBusCachedPlugin_predictionJumpInterface_payload_1,{{{_zz_IBusCachedPlugin_predictionJumpInterface_payload_4,decode_INSTRUCTION[19 : 12]},decode_INSTRUCTION[20]},decode_INSTRUCTION[30 : 21]}},1'b0} : {{_zz_IBusCachedPlugin_predictionJumpInterface_payload_3,{{{_zz_IBusCachedPlugin_predictionJumpInterface_payload_5,_zz_IBusCachedPlugin_predictionJumpInterface_payload_6},decode_INSTRUCTION[30 : 25]},decode_INSTRUCTION[11 : 8]}},1'b0}));
+  assign iBus_cmd_valid = IBusCachedPlugin_cache_io_mem_cmd_valid;
+  always @(*) begin
+    iBus_cmd_payload_address = IBusCachedPlugin_cache_io_mem_cmd_payload_address;
+    iBus_cmd_payload_address = IBusCachedPlugin_cache_io_mem_cmd_payload_address;
+  end
+
+  assign iBus_cmd_payload_size = IBusCachedPlugin_cache_io_mem_cmd_payload_size;
+  assign IBusCachedPlugin_s0_tightlyCoupledHit = 1'b0;
+  assign IBusCachedPlugin_cache_io_cpu_prefetch_isValid = (IBusCachedPlugin_iBusRsp_stages_0_input_valid && (! IBusCachedPlugin_s0_tightlyCoupledHit));
+  assign IBusCachedPlugin_cache_io_cpu_fetch_isValid = (IBusCachedPlugin_iBusRsp_stages_1_input_valid && (! IBusCachedPlugin_s1_tightlyCoupledHit));
+  assign IBusCachedPlugin_cache_io_cpu_fetch_isStuck = (! IBusCachedPlugin_iBusRsp_stages_1_input_ready);
+  assign IBusCachedPlugin_mmuBus_cmd_0_isValid = IBusCachedPlugin_cache_io_cpu_fetch_isValid;
+  assign IBusCachedPlugin_mmuBus_cmd_0_isStuck = (! IBusCachedPlugin_iBusRsp_stages_1_input_ready);
+  assign IBusCachedPlugin_mmuBus_cmd_0_virtualAddress = IBusCachedPlugin_iBusRsp_stages_1_input_payload;
+  assign IBusCachedPlugin_mmuBus_cmd_0_bypassTranslation = 1'b0;
+  assign IBusCachedPlugin_mmuBus_end = (IBusCachedPlugin_iBusRsp_stages_1_input_ready || IBusCachedPlugin_externalFlush);
+  assign IBusCachedPlugin_cache_io_cpu_decode_isValid = (IBusCachedPlugin_iBusRsp_stages_2_input_valid && (! IBusCachedPlugin_s2_tightlyCoupledHit));
+  assign IBusCachedPlugin_cache_io_cpu_decode_isStuck = (! IBusCachedPlugin_iBusRsp_stages_2_input_ready);
+  assign IBusCachedPlugin_cache_io_cpu_decode_isUser = (CsrPlugin_privilege == 2'b00);
+  assign IBusCachedPlugin_rsp_iBusRspOutputHalt = 1'b0;
+  assign IBusCachedPlugin_rsp_issueDetected = 1'b0;
+  always @(*) begin
+    IBusCachedPlugin_rsp_redoFetch = 1'b0;
+    if(when_IBusCachedPlugin_l239) begin
+      IBusCachedPlugin_rsp_redoFetch = 1'b1;
+    end
+    if(when_IBusCachedPlugin_l250) begin
+      IBusCachedPlugin_rsp_redoFetch = 1'b1;
+    end
+  end
+
+  always @(*) begin
+    IBusCachedPlugin_cache_io_cpu_fill_valid = (IBusCachedPlugin_rsp_redoFetch && (! IBusCachedPlugin_cache_io_cpu_decode_mmuRefilling));
+    if(when_IBusCachedPlugin_l250) begin
+      IBusCachedPlugin_cache_io_cpu_fill_valid = 1'b1;
+    end
+  end
+
+  always @(*) begin
+    IBusCachedPlugin_decodeExceptionPort_valid = 1'b0;
+    if(when_IBusCachedPlugin_l244) begin
+      IBusCachedPlugin_decodeExceptionPort_valid = IBusCachedPlugin_iBusRsp_readyForError;
+    end
+    if(when_IBusCachedPlugin_l256) begin
+      IBusCachedPlugin_decodeExceptionPort_valid = IBusCachedPlugin_iBusRsp_readyForError;
+    end
+  end
+
+  always @(*) begin
+    IBusCachedPlugin_decodeExceptionPort_payload_code = 4'bxxxx;
+    if(when_IBusCachedPlugin_l244) begin
+      IBusCachedPlugin_decodeExceptionPort_payload_code = 4'b1100;
+    end
+    if(when_IBusCachedPlugin_l256) begin
+      IBusCachedPlugin_decodeExceptionPort_payload_code = 4'b0001;
+    end
+  end
+
+  assign IBusCachedPlugin_decodeExceptionPort_payload_badAddr = {IBusCachedPlugin_iBusRsp_stages_2_input_payload[31 : 2],2'b00};
+  assign when_IBusCachedPlugin_l239 = ((IBusCachedPlugin_cache_io_cpu_decode_isValid && IBusCachedPlugin_cache_io_cpu_decode_mmuRefilling) && (! IBusCachedPlugin_rsp_issueDetected));
+  assign when_IBusCachedPlugin_l244 = ((IBusCachedPlugin_cache_io_cpu_decode_isValid && IBusCachedPlugin_cache_io_cpu_decode_mmuException) && (! IBusCachedPlugin_rsp_issueDetected_1));
+  assign when_IBusCachedPlugin_l250 = ((IBusCachedPlugin_cache_io_cpu_decode_isValid && IBusCachedPlugin_cache_io_cpu_decode_cacheMiss) && (! IBusCachedPlugin_rsp_issueDetected_2));
+  assign when_IBusCachedPlugin_l256 = ((IBusCachedPlugin_cache_io_cpu_decode_isValid && IBusCachedPlugin_cache_io_cpu_decode_error) && (! IBusCachedPlugin_rsp_issueDetected_3));
+  assign when_IBusCachedPlugin_l267 = (IBusCachedPlugin_rsp_issueDetected_4 || IBusCachedPlugin_rsp_iBusRspOutputHalt);
+  assign IBusCachedPlugin_iBusRsp_output_valid = IBusCachedPlugin_iBusRsp_stages_2_output_valid;
+  assign IBusCachedPlugin_iBusRsp_stages_2_output_ready = IBusCachedPlugin_iBusRsp_output_ready;
+  assign IBusCachedPlugin_iBusRsp_output_payload_rsp_inst = IBusCachedPlugin_cache_io_cpu_decode_data;
+  assign IBusCachedPlugin_iBusRsp_output_payload_pc = IBusCachedPlugin_iBusRsp_stages_2_output_payload;
+  assign IBusCachedPlugin_cache_io_flush = (decode_arbitration_isValid && decode_FLUSH_ALL);
   assign _zz_dBus_cmd_valid = 1'b0;
   always @(*) begin
     execute_DBusSimplePlugin_skipCmd = 1'b0;
@@ -2556,25 +3192,36 @@ module VexRiscv (
   end
 
   assign when_DBusSimplePlugin_l558 = (writeBack_arbitration_isValid && writeBack_MEMORY_ENABLE);
-  assign _zz_decode_ENV_CTRL_3 = ((decode_INSTRUCTION & 32'h00004050) == 32'h00004050);
-  assign _zz_decode_ENV_CTRL_4 = ((decode_INSTRUCTION & 32'h00000004) == 32'h00000004);
-  assign _zz_decode_ENV_CTRL_5 = ((decode_INSTRUCTION & 32'h00000050) == 32'h00000010);
-  assign _zz_decode_ENV_CTRL_6 = ((decode_INSTRUCTION & 32'h00000048) == 32'h00000048);
-  assign _zz_decode_ENV_CTRL_2 = {(((decode_INSTRUCTION & _zz__zz_decode_ENV_CTRL_2) == 32'h00100050) != 1'b0),{((_zz__zz_decode_ENV_CTRL_2_1 == _zz__zz_decode_ENV_CTRL_2_2) != 1'b0),{(_zz__zz_decode_ENV_CTRL_2_3 != 1'b0),{(_zz__zz_decode_ENV_CTRL_2_4 != _zz__zz_decode_ENV_CTRL_2_9),{_zz__zz_decode_ENV_CTRL_2_10,{_zz__zz_decode_ENV_CTRL_2_12,_zz__zz_decode_ENV_CTRL_2_14}}}}}};
-  assign _zz_decode_SRC1_CTRL_2 = _zz_decode_ENV_CTRL_2[1 : 0];
+  assign IBusCachedPlugin_mmuBus_rsp_physicalAddress = IBusCachedPlugin_mmuBus_cmd_0_virtualAddress;
+  assign IBusCachedPlugin_mmuBus_rsp_allowRead = 1'b1;
+  assign IBusCachedPlugin_mmuBus_rsp_allowWrite = 1'b1;
+  assign IBusCachedPlugin_mmuBus_rsp_allowExecute = 1'b1;
+  assign IBusCachedPlugin_mmuBus_rsp_isIoAccess = IBusCachedPlugin_mmuBus_rsp_physicalAddress[31];
+  assign IBusCachedPlugin_mmuBus_rsp_isPaging = 1'b0;
+  assign IBusCachedPlugin_mmuBus_rsp_exception = 1'b0;
+  assign IBusCachedPlugin_mmuBus_rsp_refilling = 1'b0;
+  assign IBusCachedPlugin_mmuBus_busy = 1'b0;
+  assign _zz_decode_IS_DIV_1 = ((decode_INSTRUCTION & 32'h00004050) == 32'h00004050);
+  assign _zz_decode_IS_DIV_2 = ((decode_INSTRUCTION & 32'h00000004) == 32'h00000004);
+  assign _zz_decode_IS_DIV_3 = ((decode_INSTRUCTION & 32'h00000048) == 32'h00000048);
+  assign _zz_decode_IS_DIV_4 = ((decode_INSTRUCTION & 32'h00003000) == 32'h00002000);
+  assign _zz_decode_IS_DIV_5 = ((decode_INSTRUCTION & 32'h00007000) == 32'h00001000);
+  assign _zz_decode_IS_DIV_6 = ((decode_INSTRUCTION & 32'h00005000) == 32'h00004000);
+  assign _zz_decode_IS_DIV = {(((decode_INSTRUCTION & _zz__zz_decode_IS_DIV) == 32'h00100050) != 1'b0),{((_zz__zz_decode_IS_DIV_1 == _zz__zz_decode_IS_DIV_2) != 1'b0),{({_zz__zz_decode_IS_DIV_3,_zz__zz_decode_IS_DIV_4} != 2'b00),{(_zz__zz_decode_IS_DIV_5 != _zz__zz_decode_IS_DIV_6),{_zz__zz_decode_IS_DIV_7,{_zz__zz_decode_IS_DIV_9,_zz__zz_decode_IS_DIV_12}}}}}};
+  assign _zz_decode_SRC1_CTRL_2 = _zz_decode_IS_DIV[2 : 1];
   assign _zz_decode_SRC1_CTRL_1 = _zz_decode_SRC1_CTRL_2;
-  assign _zz_decode_ALU_CTRL_2 = _zz_decode_ENV_CTRL_2[6 : 5];
+  assign _zz_decode_ALU_CTRL_2 = _zz_decode_IS_DIV[7 : 6];
   assign _zz_decode_ALU_CTRL_1 = _zz_decode_ALU_CTRL_2;
-  assign _zz_decode_SRC2_CTRL_2 = _zz_decode_ENV_CTRL_2[8 : 7];
+  assign _zz_decode_SRC2_CTRL_2 = _zz_decode_IS_DIV[9 : 8];
   assign _zz_decode_SRC2_CTRL_1 = _zz_decode_SRC2_CTRL_2;
-  assign _zz_decode_ALU_BITWISE_CTRL_2 = _zz_decode_ENV_CTRL_2[17 : 16];
+  assign _zz_decode_ALU_BITWISE_CTRL_2 = _zz_decode_IS_DIV[18 : 17];
   assign _zz_decode_ALU_BITWISE_CTRL_1 = _zz_decode_ALU_BITWISE_CTRL_2;
-  assign _zz_decode_SHIFT_CTRL_2 = _zz_decode_ENV_CTRL_2[20 : 19];
+  assign _zz_decode_SHIFT_CTRL_2 = _zz_decode_IS_DIV[21 : 20];
   assign _zz_decode_SHIFT_CTRL_1 = _zz_decode_SHIFT_CTRL_2;
-  assign _zz_decode_BRANCH_CTRL_2 = _zz_decode_ENV_CTRL_2[22 : 21];
-  assign _zz_decode_BRANCH_CTRL_1 = _zz_decode_BRANCH_CTRL_2;
-  assign _zz_decode_ENV_CTRL_7 = _zz_decode_ENV_CTRL_2[25 : 24];
-  assign _zz_decode_ENV_CTRL_1 = _zz_decode_ENV_CTRL_7;
+  assign _zz_decode_BRANCH_CTRL_2 = _zz_decode_IS_DIV[23 : 22];
+  assign _zz_decode_BRANCH_CTRL = _zz_decode_BRANCH_CTRL_2;
+  assign _zz_decode_ENV_CTRL_2 = _zz_decode_IS_DIV[26 : 25];
+  assign _zz_decode_ENV_CTRL_1 = _zz_decode_ENV_CTRL_2;
   assign decodeExceptionPort_valid = (decode_arbitration_isValid && (! decode_LEGAL_INSTRUCTION));
   assign decodeExceptionPort_payload_code = 4'b0010;
   assign decodeExceptionPort_payload_badAddr = decode_INSTRUCTION;
@@ -2585,21 +3232,21 @@ module VexRiscv (
   assign decode_RegFilePlugin_rs2Data = _zz_RegFilePlugin_regFile_port1;
   always @(*) begin
     lastStageRegFileWrite_valid = (_zz_lastStageRegFileWrite_valid && writeBack_arbitration_isFiring);
-    if(_zz_2) begin
+    if(_zz_7) begin
       lastStageRegFileWrite_valid = 1'b1;
     end
   end
 
   always @(*) begin
     lastStageRegFileWrite_payload_address = _zz_lastStageRegFileWrite_payload_address[11 : 7];
-    if(_zz_2) begin
+    if(_zz_7) begin
       lastStageRegFileWrite_payload_address = 5'h0;
     end
   end
 
   always @(*) begin
-    lastStageRegFileWrite_payload_data = _zz_lastStageRegFileWrite_payload_data;
-    if(_zz_2) begin
+    lastStageRegFileWrite_payload_data = _zz_decode_RS2_2;
+    if(_zz_7) begin
       lastStageRegFileWrite_payload_data = 32'h0;
     end
   end
@@ -2730,10 +3377,10 @@ module VexRiscv (
   always @(*) begin
     case(execute_SHIFT_CTRL)
       `ShiftCtrlEnum_binary_sequential_SLL_1 : begin
-        _zz_execute_to_memory_REGFILE_WRITE_DATA_1 = (execute_LightShifterPlugin_shiftInput <<< 1);
+        _zz_decode_RS2_3 = (execute_LightShifterPlugin_shiftInput <<< 1);
       end
       default : begin
-        _zz_execute_to_memory_REGFILE_WRITE_DATA_1 = _zz__zz_execute_to_memory_REGFILE_WRITE_DATA_1;
+        _zz_decode_RS2_3 = _zz__zz_decode_RS2_3;
       end
     endcase
   end
@@ -2742,28 +3389,23 @@ module VexRiscv (
   assign when_ShiftPlugins_l184 = (! execute_LightShifterPlugin_done);
   always @(*) begin
     HazardSimplePlugin_src0Hazard = 1'b0;
-    if(HazardSimplePlugin_writeBackBuffer_valid) begin
-      if(HazardSimplePlugin_addr0Match) begin
-        HazardSimplePlugin_src0Hazard = 1'b1;
-      end
-    end
     if(when_HazardSimplePlugin_l57) begin
       if(when_HazardSimplePlugin_l58) begin
-        if(when_HazardSimplePlugin_l59) begin
+        if(when_HazardSimplePlugin_l48) begin
           HazardSimplePlugin_src0Hazard = 1'b1;
         end
       end
     end
     if(when_HazardSimplePlugin_l57_1) begin
       if(when_HazardSimplePlugin_l58_1) begin
-        if(when_HazardSimplePlugin_l59_1) begin
+        if(when_HazardSimplePlugin_l48_1) begin
           HazardSimplePlugin_src0Hazard = 1'b1;
         end
       end
     end
     if(when_HazardSimplePlugin_l57_2) begin
       if(when_HazardSimplePlugin_l58_2) begin
-        if(when_HazardSimplePlugin_l59_2) begin
+        if(when_HazardSimplePlugin_l48_2) begin
           HazardSimplePlugin_src0Hazard = 1'b1;
         end
       end
@@ -2775,28 +3417,23 @@ module VexRiscv (
 
   always @(*) begin
     HazardSimplePlugin_src1Hazard = 1'b0;
-    if(HazardSimplePlugin_writeBackBuffer_valid) begin
-      if(HazardSimplePlugin_addr1Match) begin
-        HazardSimplePlugin_src1Hazard = 1'b1;
-      end
-    end
     if(when_HazardSimplePlugin_l57) begin
       if(when_HazardSimplePlugin_l58) begin
-        if(when_HazardSimplePlugin_l62) begin
+        if(when_HazardSimplePlugin_l51) begin
           HazardSimplePlugin_src1Hazard = 1'b1;
         end
       end
     end
     if(when_HazardSimplePlugin_l57_1) begin
       if(when_HazardSimplePlugin_l58_1) begin
-        if(when_HazardSimplePlugin_l62_1) begin
+        if(when_HazardSimplePlugin_l51_1) begin
           HazardSimplePlugin_src1Hazard = 1'b1;
         end
       end
     end
     if(when_HazardSimplePlugin_l57_2) begin
       if(when_HazardSimplePlugin_l58_2) begin
-        if(when_HazardSimplePlugin_l62_2) begin
+        if(when_HazardSimplePlugin_l51_2) begin
           HazardSimplePlugin_src1Hazard = 1'b1;
         end
       end
@@ -2808,21 +3445,25 @@ module VexRiscv (
 
   assign HazardSimplePlugin_writeBackWrites_valid = (_zz_lastStageRegFileWrite_valid && writeBack_arbitration_isFiring);
   assign HazardSimplePlugin_writeBackWrites_payload_address = _zz_lastStageRegFileWrite_payload_address[11 : 7];
-  assign HazardSimplePlugin_writeBackWrites_payload_data = _zz_lastStageRegFileWrite_payload_data;
+  assign HazardSimplePlugin_writeBackWrites_payload_data = _zz_decode_RS2_2;
   assign HazardSimplePlugin_addr0Match = (HazardSimplePlugin_writeBackBuffer_payload_address == decode_INSTRUCTION[19 : 15]);
   assign HazardSimplePlugin_addr1Match = (HazardSimplePlugin_writeBackBuffer_payload_address == decode_INSTRUCTION[24 : 20]);
-  assign when_HazardSimplePlugin_l59 = (writeBack_INSTRUCTION[11 : 7] == decode_INSTRUCTION[19 : 15]);
-  assign when_HazardSimplePlugin_l62 = (writeBack_INSTRUCTION[11 : 7] == decode_INSTRUCTION[24 : 20]);
+  assign when_HazardSimplePlugin_l47 = 1'b1;
+  assign when_HazardSimplePlugin_l48 = (writeBack_INSTRUCTION[11 : 7] == decode_INSTRUCTION[19 : 15]);
+  assign when_HazardSimplePlugin_l51 = (writeBack_INSTRUCTION[11 : 7] == decode_INSTRUCTION[24 : 20]);
+  assign when_HazardSimplePlugin_l45 = (writeBack_arbitration_isValid && writeBack_REGFILE_WRITE_VALID);
   assign when_HazardSimplePlugin_l57 = (writeBack_arbitration_isValid && writeBack_REGFILE_WRITE_VALID);
-  assign when_HazardSimplePlugin_l58 = (1'b1 || (! 1'b1));
-  assign when_HazardSimplePlugin_l59_1 = (memory_INSTRUCTION[11 : 7] == decode_INSTRUCTION[19 : 15]);
-  assign when_HazardSimplePlugin_l62_1 = (memory_INSTRUCTION[11 : 7] == decode_INSTRUCTION[24 : 20]);
+  assign when_HazardSimplePlugin_l58 = (1'b0 || (! when_HazardSimplePlugin_l47));
+  assign when_HazardSimplePlugin_l48_1 = (memory_INSTRUCTION[11 : 7] == decode_INSTRUCTION[19 : 15]);
+  assign when_HazardSimplePlugin_l51_1 = (memory_INSTRUCTION[11 : 7] == decode_INSTRUCTION[24 : 20]);
+  assign when_HazardSimplePlugin_l45_1 = (memory_arbitration_isValid && memory_REGFILE_WRITE_VALID);
   assign when_HazardSimplePlugin_l57_1 = (memory_arbitration_isValid && memory_REGFILE_WRITE_VALID);
-  assign when_HazardSimplePlugin_l58_1 = (1'b1 || (! memory_BYPASSABLE_MEMORY_STAGE));
-  assign when_HazardSimplePlugin_l59_2 = (execute_INSTRUCTION[11 : 7] == decode_INSTRUCTION[19 : 15]);
-  assign when_HazardSimplePlugin_l62_2 = (execute_INSTRUCTION[11 : 7] == decode_INSTRUCTION[24 : 20]);
+  assign when_HazardSimplePlugin_l58_1 = (1'b0 || (! memory_BYPASSABLE_MEMORY_STAGE));
+  assign when_HazardSimplePlugin_l48_2 = (execute_INSTRUCTION[11 : 7] == decode_INSTRUCTION[19 : 15]);
+  assign when_HazardSimplePlugin_l51_2 = (execute_INSTRUCTION[11 : 7] == decode_INSTRUCTION[24 : 20]);
+  assign when_HazardSimplePlugin_l45_2 = (execute_arbitration_isValid && execute_REGFILE_WRITE_VALID);
   assign when_HazardSimplePlugin_l57_2 = (execute_arbitration_isValid && execute_REGFILE_WRITE_VALID);
-  assign when_HazardSimplePlugin_l58_2 = (1'b1 || (! execute_BYPASSABLE_EXECUTE_STAGE));
+  assign when_HazardSimplePlugin_l58_2 = (1'b0 || (! execute_BYPASSABLE_EXECUTE_STAGE));
   assign when_HazardSimplePlugin_l105 = (! decode_RS1_USE);
   assign when_HazardSimplePlugin_l108 = (! decode_RS2_USE);
   assign when_HazardSimplePlugin_l113 = (decode_arbitration_isValid && (HazardSimplePlugin_src0Hazard || HazardSimplePlugin_src1Hazard));
@@ -2831,16 +3472,16 @@ module VexRiscv (
   always @(*) begin
     casez(switch_Misc_l200_1)
       3'b000 : begin
-        _zz_execute_BRANCH_DO = execute_BranchPlugin_eq;
+        _zz_execute_BRANCH_COND_RESULT = execute_BranchPlugin_eq;
       end
       3'b001 : begin
-        _zz_execute_BRANCH_DO = (! execute_BranchPlugin_eq);
+        _zz_execute_BRANCH_COND_RESULT = (! execute_BranchPlugin_eq);
       end
       3'b1?1 : begin
-        _zz_execute_BRANCH_DO = (! execute_SRC_LESS);
+        _zz_execute_BRANCH_COND_RESULT = (! execute_SRC_LESS);
       end
       default : begin
-        _zz_execute_BRANCH_DO = execute_SRC_LESS;
+        _zz_execute_BRANCH_COND_RESULT = execute_SRC_LESS;
       end
     endcase
   end
@@ -2848,23 +3489,119 @@ module VexRiscv (
   always @(*) begin
     case(execute_BRANCH_CTRL)
       `BranchCtrlEnum_binary_sequential_INC : begin
-        _zz_execute_BRANCH_DO_1 = 1'b0;
+        _zz_execute_BRANCH_COND_RESULT_1 = 1'b0;
       end
       `BranchCtrlEnum_binary_sequential_JAL : begin
-        _zz_execute_BRANCH_DO_1 = 1'b1;
+        _zz_execute_BRANCH_COND_RESULT_1 = 1'b1;
       end
       `BranchCtrlEnum_binary_sequential_JALR : begin
-        _zz_execute_BRANCH_DO_1 = 1'b1;
+        _zz_execute_BRANCH_COND_RESULT_1 = 1'b1;
       end
       default : begin
-        _zz_execute_BRANCH_DO_1 = _zz_execute_BRANCH_DO;
+        _zz_execute_BRANCH_COND_RESULT_1 = _zz_execute_BRANCH_COND_RESULT;
       end
     endcase
   end
 
-  assign execute_BranchPlugin_branch_src1 = ((execute_BRANCH_CTRL == `BranchCtrlEnum_binary_sequential_JALR) ? execute_RS1 : execute_PC);
-  assign _zz_execute_BranchPlugin_branch_src2 = _zz__zz_execute_BranchPlugin_branch_src2[19];
+  assign _zz_execute_BranchPlugin_missAlignedTarget = execute_INSTRUCTION[31];
   always @(*) begin
+    _zz_execute_BranchPlugin_missAlignedTarget_1[19] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[18] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[17] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[16] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[15] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[14] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[13] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[12] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[11] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[10] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[9] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[8] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[7] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[6] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[5] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[4] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[3] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[2] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[1] = _zz_execute_BranchPlugin_missAlignedTarget;
+    _zz_execute_BranchPlugin_missAlignedTarget_1[0] = _zz_execute_BranchPlugin_missAlignedTarget;
+  end
+
+  assign _zz_execute_BranchPlugin_missAlignedTarget_2 = _zz__zz_execute_BranchPlugin_missAlignedTarget_2[19];
+  always @(*) begin
+    _zz_execute_BranchPlugin_missAlignedTarget_3[10] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[9] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[8] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[7] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[6] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[5] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[4] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[3] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[2] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[1] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+    _zz_execute_BranchPlugin_missAlignedTarget_3[0] = _zz_execute_BranchPlugin_missAlignedTarget_2;
+  end
+
+  assign _zz_execute_BranchPlugin_missAlignedTarget_4 = _zz__zz_execute_BranchPlugin_missAlignedTarget_4[11];
+  always @(*) begin
+    _zz_execute_BranchPlugin_missAlignedTarget_5[18] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[17] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[16] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[15] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[14] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[13] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[12] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[11] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[10] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[9] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[8] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[7] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[6] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[5] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[4] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[3] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[2] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[1] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+    _zz_execute_BranchPlugin_missAlignedTarget_5[0] = _zz_execute_BranchPlugin_missAlignedTarget_4;
+  end
+
+  always @(*) begin
+    case(execute_BRANCH_CTRL)
+      `BranchCtrlEnum_binary_sequential_JALR : begin
+        _zz_execute_BranchPlugin_missAlignedTarget_6 = (_zz__zz_execute_BranchPlugin_missAlignedTarget_6[1] ^ execute_RS1[1]);
+      end
+      `BranchCtrlEnum_binary_sequential_JAL : begin
+        _zz_execute_BranchPlugin_missAlignedTarget_6 = _zz__zz_execute_BranchPlugin_missAlignedTarget_6_1[1];
+      end
+      default : begin
+        _zz_execute_BranchPlugin_missAlignedTarget_6 = _zz__zz_execute_BranchPlugin_missAlignedTarget_6_2[1];
+      end
+    endcase
+  end
+
+  assign execute_BranchPlugin_missAlignedTarget = (execute_BRANCH_COND_RESULT && _zz_execute_BranchPlugin_missAlignedTarget_6);
+  always @(*) begin
+    case(execute_BRANCH_CTRL)
+      `BranchCtrlEnum_binary_sequential_JALR : begin
+        execute_BranchPlugin_branch_src1 = execute_RS1;
+      end
+      default : begin
+        execute_BranchPlugin_branch_src1 = execute_PC;
+      end
+    endcase
+  end
+
+  assign _zz_execute_BranchPlugin_branch_src2 = execute_INSTRUCTION[31];
+  always @(*) begin
+    _zz_execute_BranchPlugin_branch_src2_1[19] = _zz_execute_BranchPlugin_branch_src2;
+    _zz_execute_BranchPlugin_branch_src2_1[18] = _zz_execute_BranchPlugin_branch_src2;
+    _zz_execute_BranchPlugin_branch_src2_1[17] = _zz_execute_BranchPlugin_branch_src2;
+    _zz_execute_BranchPlugin_branch_src2_1[16] = _zz_execute_BranchPlugin_branch_src2;
+    _zz_execute_BranchPlugin_branch_src2_1[15] = _zz_execute_BranchPlugin_branch_src2;
+    _zz_execute_BranchPlugin_branch_src2_1[14] = _zz_execute_BranchPlugin_branch_src2;
+    _zz_execute_BranchPlugin_branch_src2_1[13] = _zz_execute_BranchPlugin_branch_src2;
+    _zz_execute_BranchPlugin_branch_src2_1[12] = _zz_execute_BranchPlugin_branch_src2;
+    _zz_execute_BranchPlugin_branch_src2_1[11] = _zz_execute_BranchPlugin_branch_src2;
     _zz_execute_BranchPlugin_branch_src2_1[10] = _zz_execute_BranchPlugin_branch_src2;
     _zz_execute_BranchPlugin_branch_src2_1[9] = _zz_execute_BranchPlugin_branch_src2;
     _zz_execute_BranchPlugin_branch_src2_1[8] = _zz_execute_BranchPlugin_branch_src2;
@@ -2878,17 +3615,22 @@ module VexRiscv (
     _zz_execute_BranchPlugin_branch_src2_1[0] = _zz_execute_BranchPlugin_branch_src2;
   end
 
-  assign _zz_execute_BranchPlugin_branch_src2_2 = execute_INSTRUCTION[31];
   always @(*) begin
-    _zz_execute_BranchPlugin_branch_src2_3[19] = _zz_execute_BranchPlugin_branch_src2_2;
-    _zz_execute_BranchPlugin_branch_src2_3[18] = _zz_execute_BranchPlugin_branch_src2_2;
-    _zz_execute_BranchPlugin_branch_src2_3[17] = _zz_execute_BranchPlugin_branch_src2_2;
-    _zz_execute_BranchPlugin_branch_src2_3[16] = _zz_execute_BranchPlugin_branch_src2_2;
-    _zz_execute_BranchPlugin_branch_src2_3[15] = _zz_execute_BranchPlugin_branch_src2_2;
-    _zz_execute_BranchPlugin_branch_src2_3[14] = _zz_execute_BranchPlugin_branch_src2_2;
-    _zz_execute_BranchPlugin_branch_src2_3[13] = _zz_execute_BranchPlugin_branch_src2_2;
-    _zz_execute_BranchPlugin_branch_src2_3[12] = _zz_execute_BranchPlugin_branch_src2_2;
-    _zz_execute_BranchPlugin_branch_src2_3[11] = _zz_execute_BranchPlugin_branch_src2_2;
+    case(execute_BRANCH_CTRL)
+      `BranchCtrlEnum_binary_sequential_JALR : begin
+        execute_BranchPlugin_branch_src2 = {_zz_execute_BranchPlugin_branch_src2_1,execute_INSTRUCTION[31 : 20]};
+      end
+      default : begin
+        execute_BranchPlugin_branch_src2 = ((execute_BRANCH_CTRL == `BranchCtrlEnum_binary_sequential_JAL) ? {{_zz_execute_BranchPlugin_branch_src2_3,{{{_zz_execute_BranchPlugin_branch_src2_6,execute_INSTRUCTION[19 : 12]},execute_INSTRUCTION[20]},execute_INSTRUCTION[30 : 21]}},1'b0} : {{_zz_execute_BranchPlugin_branch_src2_5,{{{_zz_execute_BranchPlugin_branch_src2_7,_zz_execute_BranchPlugin_branch_src2_8},execute_INSTRUCTION[30 : 25]},execute_INSTRUCTION[11 : 8]}},1'b0});
+        if(execute_PREDICTION_HAD_BRANCHED2) begin
+          execute_BranchPlugin_branch_src2 = {29'd0, _zz_execute_BranchPlugin_branch_src2_9};
+        end
+      end
+    endcase
+  end
+
+  assign _zz_execute_BranchPlugin_branch_src2_2 = _zz__zz_execute_BranchPlugin_branch_src2_2[19];
+  always @(*) begin
     _zz_execute_BranchPlugin_branch_src2_3[10] = _zz_execute_BranchPlugin_branch_src2_2;
     _zz_execute_BranchPlugin_branch_src2_3[9] = _zz_execute_BranchPlugin_branch_src2_2;
     _zz_execute_BranchPlugin_branch_src2_3[8] = _zz_execute_BranchPlugin_branch_src2_2;
@@ -2925,27 +3667,13 @@ module VexRiscv (
     _zz_execute_BranchPlugin_branch_src2_5[0] = _zz_execute_BranchPlugin_branch_src2_4;
   end
 
-  always @(*) begin
-    case(execute_BRANCH_CTRL)
-      `BranchCtrlEnum_binary_sequential_JAL : begin
-        _zz_execute_BranchPlugin_branch_src2_6 = {{_zz_execute_BranchPlugin_branch_src2_1,{{{execute_INSTRUCTION[31],execute_INSTRUCTION[19 : 12]},execute_INSTRUCTION[20]},execute_INSTRUCTION[30 : 21]}},1'b0};
-      end
-      `BranchCtrlEnum_binary_sequential_JALR : begin
-        _zz_execute_BranchPlugin_branch_src2_6 = {_zz_execute_BranchPlugin_branch_src2_3,execute_INSTRUCTION[31 : 20]};
-      end
-      default : begin
-        _zz_execute_BranchPlugin_branch_src2_6 = {{_zz_execute_BranchPlugin_branch_src2_5,{{{execute_INSTRUCTION[31],execute_INSTRUCTION[7]},execute_INSTRUCTION[30 : 25]},execute_INSTRUCTION[11 : 8]}},1'b0};
-      end
-    endcase
-  end
-
-  assign execute_BranchPlugin_branch_src2 = _zz_execute_BranchPlugin_branch_src2_6;
   assign execute_BranchPlugin_branchAdder = (execute_BranchPlugin_branch_src1 + execute_BranchPlugin_branch_src2);
   assign BranchPlugin_jumpInterface_valid = ((memory_arbitration_isValid && memory_BRANCH_DO) && (! 1'b0));
   assign BranchPlugin_jumpInterface_payload = memory_BRANCH_CALC;
-  assign BranchPlugin_branchExceptionPort_valid = ((memory_arbitration_isValid && memory_BRANCH_DO) && BranchPlugin_jumpInterface_payload[1]);
+  assign BranchPlugin_branchExceptionPort_valid = (memory_arbitration_isValid && (memory_BRANCH_DO && memory_BRANCH_CALC[1]));
   assign BranchPlugin_branchExceptionPort_payload_code = 4'b0000;
-  assign BranchPlugin_branchExceptionPort_payload_badAddr = BranchPlugin_jumpInterface_payload;
+  assign BranchPlugin_branchExceptionPort_payload_badAddr = memory_BRANCH_CALC;
+  assign IBusCachedPlugin_decodePrediction_rsp_wasWrong = BranchPlugin_jumpInterface_valid;
   always @(*) begin
     CsrPlugin_privilege = 2'b11;
     if(CsrPlugin_forceMachineWire) begin
@@ -2960,11 +3688,13 @@ module VexRiscv (
   assign _zz_when_CsrPlugin_l952_2 = (CsrPlugin_mip_MEIP && CsrPlugin_mie_MEIE);
   assign CsrPlugin_exceptionPortCtrl_exceptionTargetPrivilegeUncapped = 2'b11;
   assign CsrPlugin_exceptionPortCtrl_exceptionTargetPrivilege = ((CsrPlugin_privilege < CsrPlugin_exceptionPortCtrl_exceptionTargetPrivilegeUncapped) ? CsrPlugin_exceptionPortCtrl_exceptionTargetPrivilegeUncapped : CsrPlugin_privilege);
-  assign _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code = {BranchPlugin_branchExceptionPort_valid,DBusSimplePlugin_memoryExceptionPort_valid};
+  assign _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code = {decodeExceptionPort_valid,IBusCachedPlugin_decodeExceptionPort_valid};
   assign _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1 = _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1[0];
+  assign _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_2 = {BranchPlugin_branchExceptionPort_valid,DBusSimplePlugin_memoryExceptionPort_valid};
+  assign _zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3 = _zz__zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3[0];
   always @(*) begin
     CsrPlugin_exceptionPortCtrl_exceptionValids_decode = CsrPlugin_exceptionPortCtrl_exceptionValidsRegs_decode;
-    if(decodeExceptionPort_valid) begin
+    if(_zz_when) begin
       CsrPlugin_exceptionPortCtrl_exceptionValids_decode = 1'b1;
     end
     if(decode_arbitration_isFlushed) begin
@@ -2984,7 +3714,7 @@ module VexRiscv (
 
   always @(*) begin
     CsrPlugin_exceptionPortCtrl_exceptionValids_memory = CsrPlugin_exceptionPortCtrl_exceptionValidsRegs_memory;
-    if(_zz_when) begin
+    if(_zz_when_1) begin
       CsrPlugin_exceptionPortCtrl_exceptionValids_memory = 1'b1;
     end
     if(memory_arbitration_isFlushed) begin
@@ -3189,6 +3919,89 @@ module VexRiscv (
   assign when_CsrPlugin_l1176 = (execute_arbitration_isValid && execute_IS_CSR);
   assign when_CsrPlugin_l1180 = (execute_arbitration_isValid && (execute_IS_CSR || 1'b0));
   assign execute_CsrPlugin_csrAddress = execute_INSTRUCTION[31 : 20];
+  assign memory_MulDivIterativePlugin_frontendOk = 1'b1;
+  always @(*) begin
+    memory_MulDivIterativePlugin_mul_counter_willIncrement = 1'b0;
+    if(when_MulDivIterativePlugin_l96) begin
+      if(when_MulDivIterativePlugin_l100) begin
+        memory_MulDivIterativePlugin_mul_counter_willIncrement = 1'b1;
+      end
+    end
+  end
+
+  always @(*) begin
+    memory_MulDivIterativePlugin_mul_counter_willClear = 1'b0;
+    if(when_MulDivIterativePlugin_l110) begin
+      memory_MulDivIterativePlugin_mul_counter_willClear = 1'b1;
+    end
+  end
+
+  assign memory_MulDivIterativePlugin_mul_counter_willOverflowIfInc = (memory_MulDivIterativePlugin_mul_counter_value == 6'h20);
+  assign memory_MulDivIterativePlugin_mul_counter_willOverflow = (memory_MulDivIterativePlugin_mul_counter_willOverflowIfInc && memory_MulDivIterativePlugin_mul_counter_willIncrement);
+  always @(*) begin
+    if(memory_MulDivIterativePlugin_mul_counter_willOverflow) begin
+      memory_MulDivIterativePlugin_mul_counter_valueNext = 6'h0;
+    end else begin
+      memory_MulDivIterativePlugin_mul_counter_valueNext = (memory_MulDivIterativePlugin_mul_counter_value + _zz_memory_MulDivIterativePlugin_mul_counter_valueNext);
+    end
+    if(memory_MulDivIterativePlugin_mul_counter_willClear) begin
+      memory_MulDivIterativePlugin_mul_counter_valueNext = 6'h0;
+    end
+  end
+
+  assign when_MulDivIterativePlugin_l96 = (memory_arbitration_isValid && memory_IS_MUL);
+  assign when_MulDivIterativePlugin_l97 = ((! memory_MulDivIterativePlugin_frontendOk) || (! memory_MulDivIterativePlugin_mul_counter_willOverflowIfInc));
+  assign when_MulDivIterativePlugin_l100 = (memory_MulDivIterativePlugin_frontendOk && (! memory_MulDivIterativePlugin_mul_counter_willOverflowIfInc));
+  assign when_MulDivIterativePlugin_l110 = (! memory_arbitration_isStuck);
+  always @(*) begin
+    memory_MulDivIterativePlugin_div_counter_willIncrement = 1'b0;
+    if(when_MulDivIterativePlugin_l128) begin
+      if(when_MulDivIterativePlugin_l132) begin
+        memory_MulDivIterativePlugin_div_counter_willIncrement = 1'b1;
+      end
+    end
+  end
+
+  always @(*) begin
+    memory_MulDivIterativePlugin_div_counter_willClear = 1'b0;
+    if(when_MulDivIterativePlugin_l162) begin
+      memory_MulDivIterativePlugin_div_counter_willClear = 1'b1;
+    end
+  end
+
+  assign memory_MulDivIterativePlugin_div_counter_willOverflowIfInc = (memory_MulDivIterativePlugin_div_counter_value == 6'h21);
+  assign memory_MulDivIterativePlugin_div_counter_willOverflow = (memory_MulDivIterativePlugin_div_counter_willOverflowIfInc && memory_MulDivIterativePlugin_div_counter_willIncrement);
+  always @(*) begin
+    if(memory_MulDivIterativePlugin_div_counter_willOverflow) begin
+      memory_MulDivIterativePlugin_div_counter_valueNext = 6'h0;
+    end else begin
+      memory_MulDivIterativePlugin_div_counter_valueNext = (memory_MulDivIterativePlugin_div_counter_value + _zz_memory_MulDivIterativePlugin_div_counter_valueNext);
+    end
+    if(memory_MulDivIterativePlugin_div_counter_willClear) begin
+      memory_MulDivIterativePlugin_div_counter_valueNext = 6'h0;
+    end
+  end
+
+  assign when_MulDivIterativePlugin_l126 = (memory_MulDivIterativePlugin_div_counter_value == 6'h20);
+  assign when_MulDivIterativePlugin_l126_1 = (! memory_arbitration_isStuck);
+  assign when_MulDivIterativePlugin_l128 = (memory_arbitration_isValid && memory_IS_DIV);
+  assign when_MulDivIterativePlugin_l129 = ((! memory_MulDivIterativePlugin_frontendOk) || (! memory_MulDivIterativePlugin_div_done));
+  assign when_MulDivIterativePlugin_l132 = (memory_MulDivIterativePlugin_frontendOk && (! memory_MulDivIterativePlugin_div_done));
+  assign _zz_memory_MulDivIterativePlugin_div_stage_0_remainderShifted = memory_MulDivIterativePlugin_rs1[31 : 0];
+  assign memory_MulDivIterativePlugin_div_stage_0_remainderShifted = {memory_MulDivIterativePlugin_accumulator[31 : 0],_zz_memory_MulDivIterativePlugin_div_stage_0_remainderShifted[31]};
+  assign memory_MulDivIterativePlugin_div_stage_0_remainderMinusDenominator = (memory_MulDivIterativePlugin_div_stage_0_remainderShifted - _zz_memory_MulDivIterativePlugin_div_stage_0_remainderMinusDenominator);
+  assign memory_MulDivIterativePlugin_div_stage_0_outRemainder = ((! memory_MulDivIterativePlugin_div_stage_0_remainderMinusDenominator[32]) ? _zz_memory_MulDivIterativePlugin_div_stage_0_outRemainder : _zz_memory_MulDivIterativePlugin_div_stage_0_outRemainder_1);
+  assign memory_MulDivIterativePlugin_div_stage_0_outNumerator = _zz_memory_MulDivIterativePlugin_div_stage_0_outNumerator[31:0];
+  assign when_MulDivIterativePlugin_l151 = (memory_MulDivIterativePlugin_div_counter_value == 6'h20);
+  assign _zz_memory_MulDivIterativePlugin_div_result = (memory_INSTRUCTION[13] ? memory_MulDivIterativePlugin_accumulator[31 : 0] : memory_MulDivIterativePlugin_rs1[31 : 0]);
+  assign when_MulDivIterativePlugin_l162 = (! memory_arbitration_isStuck);
+  assign _zz_memory_MulDivIterativePlugin_rs1 = (execute_RS2[31] && execute_IS_RS2_SIGNED);
+  assign _zz_memory_MulDivIterativePlugin_rs1_1 = ((execute_IS_MUL && _zz_memory_MulDivIterativePlugin_rs1) || ((execute_IS_DIV && execute_RS1[31]) && execute_IS_RS1_SIGNED));
+  always @(*) begin
+    _zz_memory_MulDivIterativePlugin_rs1_2[32] = (execute_IS_RS1_SIGNED && execute_RS1[31]);
+    _zz_memory_MulDivIterativePlugin_rs1_2[31 : 0] = execute_RS1;
+  end
+
   assign _zz_CsrPlugin_csrMapping_readDataInit_1 = (_zz_CsrPlugin_csrMapping_readDataInit & externalInterruptArray_regNext);
   assign externalInterrupt = (_zz_CsrPlugin_csrMapping_readDataInit_1 != 32'h0);
   assign when_DebugPlugin_l225 = (DebugPlugin_haltIt && (! DebugPlugin_isPipBusy));
@@ -3199,7 +4012,7 @@ module VexRiscv (
       case(switch_DebugPlugin_l256)
         6'h01 : begin
           if(debug_bus_cmd_payload_wr) begin
-            debug_bus_cmd_ready = IBusSimplePlugin_injectionPort_ready;
+            debug_bus_cmd_ready = IBusCachedPlugin_injectionPort_ready;
           end
         end
         default : begin
@@ -3221,12 +4034,12 @@ module VexRiscv (
 
   assign when_DebugPlugin_l244 = (! _zz_when_DebugPlugin_l244);
   always @(*) begin
-    IBusSimplePlugin_injectionPort_valid = 1'b0;
+    IBusCachedPlugin_injectionPort_valid = 1'b0;
     if(debug_bus_cmd_valid) begin
       case(switch_DebugPlugin_l256)
         6'h01 : begin
           if(debug_bus_cmd_payload_wr) begin
-            IBusSimplePlugin_injectionPort_valid = 1'b1;
+            IBusCachedPlugin_injectionPort_valid = 1'b1;
           end
         end
         default : begin
@@ -3235,7 +4048,7 @@ module VexRiscv (
     end
   end
 
-  assign IBusSimplePlugin_injectionPort_payload = debug_bus_cmd_payload_data;
+  assign IBusCachedPlugin_injectionPort_payload = debug_bus_cmd_payload_data;
   assign switch_DebugPlugin_l256 = debug_bus_cmd_payload_address[7 : 2];
   assign when_DebugPlugin_l260 = debug_bus_cmd_payload_data[16];
   assign when_DebugPlugin_l260_1 = debug_bus_cmd_payload_data[24];
@@ -3247,7 +4060,7 @@ module VexRiscv (
   assign when_DebugPlugin_l264_1 = debug_bus_cmd_payload_data[26];
   assign when_DebugPlugin_l284 = (execute_arbitration_isValid && execute_DO_EBREAK);
   assign when_DebugPlugin_l287 = (({writeBack_arbitration_isValid,memory_arbitration_isValid} != 2'b00) == 1'b0);
-  assign when_DebugPlugin_l300 = (DebugPlugin_stepIt && IBusSimplePlugin_incomingInstruction);
+  assign when_DebugPlugin_l300 = (DebugPlugin_stepIt && IBusCachedPlugin_incomingInstruction);
   assign debug_resetOut = DebugPlugin_resetIt_regNext;
   assign when_DebugPlugin_l316 = (DebugPlugin_haltIt || DebugPlugin_stepIt);
   assign when_Pipeline_l124 = (! execute_arbitration_isStuck);
@@ -3294,7 +4107,7 @@ module VexRiscv (
   assign when_Pipeline_l124_27 = (! execute_arbitration_isStuck);
   assign _zz_execute_SHIFT_CTRL = decode_to_execute_SHIFT_CTRL;
   assign _zz_decode_to_execute_BRANCH_CTRL_1 = decode_BRANCH_CTRL;
-  assign _zz_decode_BRANCH_CTRL = _zz_decode_BRANCH_CTRL_1;
+  assign _zz_decode_BRANCH_CTRL_1 = _zz_decode_BRANCH_CTRL;
   assign when_Pipeline_l124_28 = (! execute_arbitration_isStuck);
   assign _zz_execute_BRANCH_CTRL = decode_to_execute_BRANCH_CTRL;
   assign when_Pipeline_l124_29 = (! execute_arbitration_isStuck);
@@ -3309,19 +4122,26 @@ module VexRiscv (
   assign when_Pipeline_l124_32 = (! writeBack_arbitration_isStuck);
   assign _zz_writeBack_ENV_CTRL = memory_to_writeBack_ENV_CTRL;
   assign when_Pipeline_l124_33 = (! execute_arbitration_isStuck);
-  assign when_Pipeline_l124_34 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_34 = (! memory_arbitration_isStuck);
   assign when_Pipeline_l124_35 = (! execute_arbitration_isStuck);
   assign when_Pipeline_l124_36 = (! execute_arbitration_isStuck);
   assign when_Pipeline_l124_37 = (! execute_arbitration_isStuck);
-  assign when_Pipeline_l124_38 = (! execute_arbitration_isStuck);
-  assign when_Pipeline_l124_39 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_40 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_41 = (! writeBack_arbitration_isStuck);
-  assign when_Pipeline_l124_42 = ((! memory_arbitration_isStuck) && (! execute_arbitration_isStuckByOthers));
-  assign when_Pipeline_l124_43 = (! writeBack_arbitration_isStuck);
-  assign when_Pipeline_l124_44 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_45 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_46 = (! writeBack_arbitration_isStuck);
+  assign when_Pipeline_l124_38 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_39 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_40 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_41 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_42 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_43 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_44 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_45 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_46 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_47 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_48 = (! writeBack_arbitration_isStuck);
+  assign when_Pipeline_l124_49 = ((! memory_arbitration_isStuck) && (! execute_arbitration_isStuckByOthers));
+  assign when_Pipeline_l124_50 = (! writeBack_arbitration_isStuck);
+  assign when_Pipeline_l124_51 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_52 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_53 = (! writeBack_arbitration_isStuck);
   assign decode_arbitration_isFlushed = (({writeBack_arbitration_flushNext,{memory_arbitration_flushNext,execute_arbitration_flushNext}} != 3'b000) || ({writeBack_arbitration_flushIt,{memory_arbitration_flushIt,{execute_arbitration_flushIt,decode_arbitration_flushIt}}} != 4'b0000));
   assign execute_arbitration_isFlushed = (({writeBack_arbitration_flushNext,memory_arbitration_flushNext} != 2'b00) || ({writeBack_arbitration_flushIt,{memory_arbitration_flushIt,execute_arbitration_flushIt}} != 3'b000));
   assign memory_arbitration_isFlushed = ((writeBack_arbitration_flushNext != 1'b0) || ({writeBack_arbitration_flushIt,memory_arbitration_flushIt} != 2'b00));
@@ -3349,10 +4169,10 @@ module VexRiscv (
   assign when_Pipeline_l151_2 = ((! writeBack_arbitration_isStuck) || writeBack_arbitration_removeIt);
   assign when_Pipeline_l154_2 = ((! memory_arbitration_isStuck) && (! memory_arbitration_removeIt));
   always @(*) begin
-    IBusSimplePlugin_injectionPort_ready = 1'b0;
+    IBusCachedPlugin_injectionPort_ready = 1'b0;
     case(switch_Fetcher_l362)
       3'b100 : begin
-        IBusSimplePlugin_injectionPort_ready = 1'b1;
+        IBusCachedPlugin_injectionPort_ready = 1'b1;
       end
       default : begin
       end
@@ -3360,7 +4180,6 @@ module VexRiscv (
   end
 
   assign when_Fetcher_l378 = (! decode_arbitration_isStuck);
-  assign when_Fetcher_l398 = (switch_Fetcher_l362 != 3'b000);
   assign when_CsrPlugin_l1264 = (! execute_arbitration_isStuck);
   assign when_CsrPlugin_l1264_1 = (! execute_arbitration_isStuck);
   assign when_CsrPlugin_l1264_2 = (! execute_arbitration_isStuck);
@@ -3436,27 +4255,30 @@ module VexRiscv (
   assign CsrPlugin_csrMapping_readDataInit = (((_zz_CsrPlugin_csrMapping_readDataInit_2 | _zz_CsrPlugin_csrMapping_readDataInit_3) | (_zz_CsrPlugin_csrMapping_readDataInit_4 | _zz_CsrPlugin_csrMapping_readDataInit_5)) | ((_zz_CsrPlugin_csrMapping_readDataInit_6 | _zz_CsrPlugin_csrMapping_readDataInit_7) | (_zz_CsrPlugin_csrMapping_readDataInit_8 | _zz_CsrPlugin_csrMapping_readDataInit_9)));
   assign when_CsrPlugin_l1297 = (CsrPlugin_privilege < execute_CsrPlugin_csrAddress[9 : 8]);
   assign when_CsrPlugin_l1302 = ((! execute_arbitration_isValid) || (! execute_IS_CSR));
-  always @(*) begin
-    iBus_cmd_ready = iBus_cmd_m2sPipe_ready;
-    if(when_Stream_l342) begin
-      iBus_cmd_ready = 1'b1;
-    end
-  end
-
-  assign when_Stream_l342 = (! iBus_cmd_m2sPipe_valid);
-  assign iBus_cmd_m2sPipe_valid = iBus_cmd_rValid;
-  assign iBus_cmd_m2sPipe_payload_pc = iBus_cmd_rData_pc;
-  assign iBusWishbone_ADR = (iBus_cmd_m2sPipe_payload_pc >>> 2);
-  assign iBusWishbone_CTI = 3'b000;
+  assign iBusWishbone_ADR = {_zz_iBusWishbone_ADR_1,_zz_iBusWishbone_ADR};
+  assign iBusWishbone_CTI = ((_zz_iBusWishbone_ADR == 3'b111) ? 3'b111 : 3'b010);
   assign iBusWishbone_BTE = 2'b00;
   assign iBusWishbone_SEL = 4'b1111;
   assign iBusWishbone_WE = 1'b0;
   assign iBusWishbone_DAT_MOSI = 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-  assign iBusWishbone_CYC = iBus_cmd_m2sPipe_valid;
-  assign iBusWishbone_STB = iBus_cmd_m2sPipe_valid;
-  assign iBus_cmd_m2sPipe_ready = (iBus_cmd_m2sPipe_valid && iBusWishbone_ACK);
-  assign iBus_rsp_valid = (iBusWishbone_CYC && iBusWishbone_ACK);
-  assign iBus_rsp_payload_inst = iBusWishbone_DAT_MISO;
+  always @(*) begin
+    iBusWishbone_CYC = 1'b0;
+    if(when_InstructionCache_l239) begin
+      iBusWishbone_CYC = 1'b1;
+    end
+  end
+
+  always @(*) begin
+    iBusWishbone_STB = 1'b0;
+    if(when_InstructionCache_l239) begin
+      iBusWishbone_STB = 1'b1;
+    end
+  end
+
+  assign when_InstructionCache_l239 = (iBus_cmd_valid || (_zz_iBusWishbone_ADR != 3'b000));
+  assign iBus_cmd_ready = (iBus_cmd_valid && iBusWishbone_ACK);
+  assign iBus_rsp_valid = _zz_iBus_rsp_valid;
+  assign iBus_rsp_payload_data = iBusWishbone_DAT_MISO_regNext;
   assign iBus_rsp_payload_error = 1'b0;
   assign dBus_cmd_halfPipe_fire = (dBus_cmd_halfPipe_valid && dBus_cmd_halfPipe_ready);
   assign dBus_cmd_ready = (! dBus_cmd_rValid);
@@ -3500,20 +4322,20 @@ module VexRiscv (
   assign dBus_rsp_error = 1'b0;
   always @(posedge clk) begin
     if(reset) begin
-      IBusSimplePlugin_fetchPc_pcReg <= externalResetVector;
-      IBusSimplePlugin_fetchPc_correctionReg <= 1'b0;
-      IBusSimplePlugin_fetchPc_booted <= 1'b0;
-      IBusSimplePlugin_fetchPc_inc <= 1'b0;
-      _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_2 <= 1'b0;
-      _zz_IBusSimplePlugin_injector_decodeInput_valid <= 1'b0;
-      IBusSimplePlugin_injector_nextPcCalc_valids_0 <= 1'b0;
-      IBusSimplePlugin_injector_nextPcCalc_valids_1 <= 1'b0;
-      IBusSimplePlugin_injector_nextPcCalc_valids_2 <= 1'b0;
-      IBusSimplePlugin_injector_nextPcCalc_valids_3 <= 1'b0;
-      IBusSimplePlugin_injector_nextPcCalc_valids_4 <= 1'b0;
-      IBusSimplePlugin_pending_value <= 3'b000;
-      IBusSimplePlugin_rspJoin_rspBuffer_discardCounter <= 3'b000;
-      _zz_2 <= 1'b1;
+      IBusCachedPlugin_fetchPc_pcReg <= externalResetVector;
+      IBusCachedPlugin_fetchPc_correctionReg <= 1'b0;
+      IBusCachedPlugin_fetchPc_booted <= 1'b0;
+      IBusCachedPlugin_fetchPc_inc <= 1'b0;
+      _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_2 <= 1'b0;
+      _zz_IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid <= 1'b0;
+      IBusCachedPlugin_injector_nextPcCalc_valids_0 <= 1'b0;
+      IBusCachedPlugin_injector_nextPcCalc_valids_1 <= 1'b0;
+      IBusCachedPlugin_injector_nextPcCalc_valids_2 <= 1'b0;
+      IBusCachedPlugin_injector_nextPcCalc_valids_3 <= 1'b0;
+      IBusCachedPlugin_injector_nextPcCalc_valids_4 <= 1'b0;
+      IBusCachedPlugin_rspCounter <= _zz_IBusCachedPlugin_rspCounter;
+      IBusCachedPlugin_rspCounter <= 32'h0;
+      _zz_7 <= 1'b1;
       execute_LightShifterPlugin_isActive <= 1'b0;
       HazardSimplePlugin_writeBackBuffer_valid <= 1'b0;
       CsrPlugin_mstatus_MIE <= 1'b0;
@@ -3532,91 +4354,92 @@ module VexRiscv (
       CsrPlugin_pipelineLiberator_pcValids_2 <= 1'b0;
       CsrPlugin_hadException <= 1'b0;
       execute_CsrPlugin_wfiWake <= 1'b0;
+      memory_MulDivIterativePlugin_mul_counter_value <= 6'h0;
+      memory_MulDivIterativePlugin_div_counter_value <= 6'h0;
       _zz_CsrPlugin_csrMapping_readDataInit <= 32'h0;
       execute_arbitration_isValid <= 1'b0;
       memory_arbitration_isValid <= 1'b0;
       writeBack_arbitration_isValid <= 1'b0;
       switch_Fetcher_l362 <= 3'b000;
-      iBus_cmd_rValid <= 1'b0;
+      _zz_iBusWishbone_ADR <= 3'b000;
+      _zz_iBus_rsp_valid <= 1'b0;
       dBus_cmd_rValid <= 1'b0;
     end else begin
-      if(IBusSimplePlugin_fetchPc_correction) begin
-        IBusSimplePlugin_fetchPc_correctionReg <= 1'b1;
+      if(IBusCachedPlugin_fetchPc_correction) begin
+        IBusCachedPlugin_fetchPc_correctionReg <= 1'b1;
       end
-      if(IBusSimplePlugin_fetchPc_output_fire) begin
-        IBusSimplePlugin_fetchPc_correctionReg <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_output_fire) begin
+        IBusCachedPlugin_fetchPc_correctionReg <= 1'b0;
       end
-      IBusSimplePlugin_fetchPc_booted <= 1'b1;
+      IBusCachedPlugin_fetchPc_booted <= 1'b1;
       if(when_Fetcher_l131) begin
-        IBusSimplePlugin_fetchPc_inc <= 1'b0;
+        IBusCachedPlugin_fetchPc_inc <= 1'b0;
       end
-      if(IBusSimplePlugin_fetchPc_output_fire_1) begin
-        IBusSimplePlugin_fetchPc_inc <= 1'b1;
+      if(IBusCachedPlugin_fetchPc_output_fire_1) begin
+        IBusCachedPlugin_fetchPc_inc <= 1'b1;
       end
       if(when_Fetcher_l131_1) begin
-        IBusSimplePlugin_fetchPc_inc <= 1'b0;
+        IBusCachedPlugin_fetchPc_inc <= 1'b0;
       end
       if(when_Fetcher_l158) begin
-        IBusSimplePlugin_fetchPc_pcReg <= IBusSimplePlugin_fetchPc_pc;
+        IBusCachedPlugin_fetchPc_pcReg <= IBusCachedPlugin_fetchPc_pc;
       end
-      if(IBusSimplePlugin_iBusRsp_flush) begin
-        _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_2 <= 1'b0;
+      if(IBusCachedPlugin_iBusRsp_flush) begin
+        _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_2 <= 1'b0;
       end
-      if(_zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready) begin
-        _zz_IBusSimplePlugin_iBusRsp_stages_0_output_ready_2 <= (IBusSimplePlugin_iBusRsp_stages_0_output_valid && (! 1'b0));
+      if(_zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready) begin
+        _zz_IBusCachedPlugin_iBusRsp_stages_0_output_ready_2 <= (IBusCachedPlugin_iBusRsp_stages_0_output_valid && (! 1'b0));
       end
-      if(decode_arbitration_removeIt) begin
-        _zz_IBusSimplePlugin_injector_decodeInput_valid <= 1'b0;
+      if(IBusCachedPlugin_iBusRsp_flush) begin
+        _zz_IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid <= 1'b0;
       end
-      if(IBusSimplePlugin_iBusRsp_output_ready) begin
-        _zz_IBusSimplePlugin_injector_decodeInput_valid <= (IBusSimplePlugin_iBusRsp_output_valid && (! IBusSimplePlugin_externalFlush));
+      if(IBusCachedPlugin_iBusRsp_stages_1_output_ready) begin
+        _zz_IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_valid <= (IBusCachedPlugin_iBusRsp_stages_1_output_valid && (! IBusCachedPlugin_iBusRsp_flush));
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_0 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_0 <= 1'b0;
       end
       if(when_Fetcher_l329) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_0 <= 1'b1;
+        IBusCachedPlugin_injector_nextPcCalc_valids_0 <= 1'b1;
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_1 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_1 <= 1'b0;
       end
       if(when_Fetcher_l329_1) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_1 <= IBusSimplePlugin_injector_nextPcCalc_valids_0;
+        IBusCachedPlugin_injector_nextPcCalc_valids_1 <= IBusCachedPlugin_injector_nextPcCalc_valids_0;
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_1 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_1 <= 1'b0;
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_2 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_2 <= 1'b0;
       end
       if(when_Fetcher_l329_2) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_2 <= IBusSimplePlugin_injector_nextPcCalc_valids_1;
+        IBusCachedPlugin_injector_nextPcCalc_valids_2 <= IBusCachedPlugin_injector_nextPcCalc_valids_1;
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_2 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_2 <= 1'b0;
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_3 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_3 <= 1'b0;
       end
       if(when_Fetcher_l329_3) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_3 <= IBusSimplePlugin_injector_nextPcCalc_valids_2;
+        IBusCachedPlugin_injector_nextPcCalc_valids_3 <= IBusCachedPlugin_injector_nextPcCalc_valids_2;
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_3 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_3 <= 1'b0;
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_4 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_4 <= 1'b0;
       end
       if(when_Fetcher_l329_4) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_4 <= IBusSimplePlugin_injector_nextPcCalc_valids_3;
+        IBusCachedPlugin_injector_nextPcCalc_valids_4 <= IBusCachedPlugin_injector_nextPcCalc_valids_3;
       end
-      if(IBusSimplePlugin_fetchPc_flushed) begin
-        IBusSimplePlugin_injector_nextPcCalc_valids_4 <= 1'b0;
+      if(IBusCachedPlugin_fetchPc_flushed) begin
+        IBusCachedPlugin_injector_nextPcCalc_valids_4 <= 1'b0;
       end
-      IBusSimplePlugin_pending_value <= IBusSimplePlugin_pending_next;
-      IBusSimplePlugin_rspJoin_rspBuffer_discardCounter <= (IBusSimplePlugin_rspJoin_rspBuffer_discardCounter - _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter);
-      if(IBusSimplePlugin_iBusRsp_flush) begin
-        IBusSimplePlugin_rspJoin_rspBuffer_discardCounter <= (IBusSimplePlugin_pending_value - _zz_IBusSimplePlugin_rspJoin_rspBuffer_discardCounter_2);
+      if(iBus_rsp_valid) begin
+        IBusCachedPlugin_rspCounter <= (IBusCachedPlugin_rspCounter + 32'h00000001);
       end
       `ifndef SYNTHESIS
         `ifdef FORMAL
@@ -3638,7 +4461,7 @@ module VexRiscv (
           end
         `endif
       `endif
-      _zz_2 <= 1'b0;
+      _zz_7 <= 1'b0;
       if(when_ShiftPlugins_l169) begin
         if(when_ShiftPlugins_l175) begin
           execute_LightShifterPlugin_isActive <= 1'b1;
@@ -3726,6 +4549,8 @@ module VexRiscv (
         endcase
       end
       execute_CsrPlugin_wfiWake <= (({_zz_when_CsrPlugin_l952_2,{_zz_when_CsrPlugin_l952_1,_zz_when_CsrPlugin_l952}} != 3'b000) || CsrPlugin_thirdPartyWake);
+      memory_MulDivIterativePlugin_mul_counter_value <= memory_MulDivIterativePlugin_mul_counter_valueNext;
+      memory_MulDivIterativePlugin_div_counter_value <= memory_MulDivIterativePlugin_div_counter_valueNext;
       if(when_Pipeline_l151) begin
         execute_arbitration_isValid <= 1'b0;
       end
@@ -3746,7 +4571,7 @@ module VexRiscv (
       end
       case(switch_Fetcher_l362)
         3'b000 : begin
-          if(IBusSimplePlugin_injectionPort_valid) begin
+          if(IBusCachedPlugin_injectionPort_valid) begin
             switch_Fetcher_l362 <= 3'b001;
           end
         end
@@ -3786,9 +4611,12 @@ module VexRiscv (
           _zz_CsrPlugin_csrMapping_readDataInit <= CsrPlugin_csrMapping_writeDataSignal[31 : 0];
         end
       end
-      if(iBus_cmd_ready) begin
-        iBus_cmd_rValid <= iBus_cmd_valid;
+      if(when_InstructionCache_l239) begin
+        if(iBusWishbone_ACK) begin
+          _zz_iBusWishbone_ADR <= (_zz_iBusWishbone_ADR + 3'b001);
+        end
       end
+      _zz_iBus_rsp_valid <= (iBusWishbone_CYC && iBusWishbone_ACK);
       if(dBus_cmd_valid) begin
         dBus_cmd_rValid <= 1'b1;
       end
@@ -3799,14 +4627,14 @@ module VexRiscv (
   end
 
   always @(posedge clk) begin
-    if(IBusSimplePlugin_iBusRsp_output_ready) begin
-      _zz_IBusSimplePlugin_injector_decodeInput_payload_pc <= IBusSimplePlugin_iBusRsp_output_payload_pc;
-      _zz_IBusSimplePlugin_injector_decodeInput_payload_rsp_error <= IBusSimplePlugin_iBusRsp_output_payload_rsp_error;
-      _zz_IBusSimplePlugin_injector_decodeInput_payload_rsp_inst <= IBusSimplePlugin_iBusRsp_output_payload_rsp_inst;
-      _zz_IBusSimplePlugin_injector_decodeInput_payload_isRvc <= IBusSimplePlugin_iBusRsp_output_payload_isRvc;
+    if(IBusCachedPlugin_iBusRsp_stages_1_output_ready) begin
+      _zz_IBusCachedPlugin_iBusRsp_stages_1_output_m2sPipe_payload <= IBusCachedPlugin_iBusRsp_stages_1_output_payload;
     end
-    if(IBusSimplePlugin_injector_decodeInput_ready) begin
-      IBusSimplePlugin_injector_formal_rawInDecode <= IBusSimplePlugin_iBusRsp_output_payload_rsp_inst;
+    if(IBusCachedPlugin_iBusRsp_stages_1_input_ready) begin
+      IBusCachedPlugin_s1_tightlyCoupledHit <= IBusCachedPlugin_s0_tightlyCoupledHit;
+    end
+    if(IBusCachedPlugin_iBusRsp_stages_2_input_ready) begin
+      IBusCachedPlugin_s2_tightlyCoupledHit <= IBusCachedPlugin_s1_tightlyCoupledHit;
     end
     if(when_ShiftPlugins_l169) begin
       if(when_ShiftPlugins_l175) begin
@@ -3822,17 +4650,17 @@ module VexRiscv (
     if(writeBack_arbitration_isFiring) begin
       CsrPlugin_minstret <= (CsrPlugin_minstret + 64'h0000000000000001);
     end
-    if(decodeExceptionPort_valid) begin
-      CsrPlugin_exceptionPortCtrl_exceptionContext_code <= decodeExceptionPort_payload_code;
-      CsrPlugin_exceptionPortCtrl_exceptionContext_badAddr <= decodeExceptionPort_payload_badAddr;
+    if(_zz_when) begin
+      CsrPlugin_exceptionPortCtrl_exceptionContext_code <= (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1 ? IBusCachedPlugin_decodeExceptionPort_payload_code : decodeExceptionPort_payload_code);
+      CsrPlugin_exceptionPortCtrl_exceptionContext_badAddr <= (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1 ? IBusCachedPlugin_decodeExceptionPort_payload_badAddr : decodeExceptionPort_payload_badAddr);
     end
     if(CsrPlugin_selfException_valid) begin
       CsrPlugin_exceptionPortCtrl_exceptionContext_code <= CsrPlugin_selfException_payload_code;
       CsrPlugin_exceptionPortCtrl_exceptionContext_badAddr <= CsrPlugin_selfException_payload_badAddr;
     end
-    if(_zz_when) begin
-      CsrPlugin_exceptionPortCtrl_exceptionContext_code <= (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1 ? DBusSimplePlugin_memoryExceptionPort_payload_code : BranchPlugin_branchExceptionPort_payload_code);
-      CsrPlugin_exceptionPortCtrl_exceptionContext_badAddr <= (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_1 ? DBusSimplePlugin_memoryExceptionPort_payload_badAddr : BranchPlugin_branchExceptionPort_payload_badAddr);
+    if(_zz_when_1) begin
+      CsrPlugin_exceptionPortCtrl_exceptionContext_code <= (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3 ? DBusSimplePlugin_memoryExceptionPort_payload_code : BranchPlugin_branchExceptionPort_payload_code);
+      CsrPlugin_exceptionPortCtrl_exceptionContext_badAddr <= (_zz_CsrPlugin_exceptionPortCtrl_exceptionContext_code_3 ? DBusSimplePlugin_memoryExceptionPort_payload_badAddr : BranchPlugin_branchExceptionPort_payload_badAddr);
     end
     if(when_CsrPlugin_l946) begin
       if(when_CsrPlugin_l952) begin
@@ -3862,6 +4690,33 @@ module VexRiscv (
         end
       endcase
     end
+    if(when_MulDivIterativePlugin_l96) begin
+      if(when_MulDivIterativePlugin_l100) begin
+        memory_MulDivIterativePlugin_rs2 <= (memory_MulDivIterativePlugin_rs2 >>> 1);
+        memory_MulDivIterativePlugin_accumulator <= ({_zz_memory_MulDivIterativePlugin_accumulator,memory_MulDivIterativePlugin_accumulator[31 : 0]} >>> 1);
+      end
+    end
+    if(when_MulDivIterativePlugin_l126) begin
+      memory_MulDivIterativePlugin_div_done <= 1'b1;
+    end
+    if(when_MulDivIterativePlugin_l126_1) begin
+      memory_MulDivIterativePlugin_div_done <= 1'b0;
+    end
+    if(when_MulDivIterativePlugin_l128) begin
+      if(when_MulDivIterativePlugin_l132) begin
+        memory_MulDivIterativePlugin_rs1[31 : 0] <= memory_MulDivIterativePlugin_div_stage_0_outNumerator;
+        memory_MulDivIterativePlugin_accumulator[31 : 0] <= memory_MulDivIterativePlugin_div_stage_0_outRemainder;
+        if(when_MulDivIterativePlugin_l151) begin
+          memory_MulDivIterativePlugin_div_result <= _zz_memory_MulDivIterativePlugin_div_result_1[31:0];
+        end
+      end
+    end
+    if(when_MulDivIterativePlugin_l162) begin
+      memory_MulDivIterativePlugin_accumulator <= 65'h0;
+      memory_MulDivIterativePlugin_rs1 <= ((_zz_memory_MulDivIterativePlugin_rs1_1 ? (~ _zz_memory_MulDivIterativePlugin_rs1_2) : _zz_memory_MulDivIterativePlugin_rs1_2) + _zz_memory_MulDivIterativePlugin_rs1_3);
+      memory_MulDivIterativePlugin_rs2 <= ((_zz_memory_MulDivIterativePlugin_rs1 ? (~ execute_RS2) : execute_RS2) + _zz_memory_MulDivIterativePlugin_rs2);
+      memory_MulDivIterativePlugin_div_needRevert <= ((_zz_memory_MulDivIterativePlugin_rs1_1 ^ (_zz_memory_MulDivIterativePlugin_rs1 && (! execute_INSTRUCTION[13]))) && (! (((execute_RS2 == 32'h0) && execute_IS_RS2_SIGNED) && (! execute_INSTRUCTION[13]))));
+    end
     externalInterruptArray_regNext <= externalInterruptArray;
     if(when_Pipeline_l124) begin
       decode_to_execute_PC <= decode_PC;
@@ -3882,7 +4737,7 @@ module VexRiscv (
       memory_to_writeBack_INSTRUCTION <= memory_INSTRUCTION;
     end
     if(when_Pipeline_l124_6) begin
-      decode_to_execute_FORMAL_PC_NEXT <= decode_FORMAL_PC_NEXT;
+      decode_to_execute_FORMAL_PC_NEXT <= _zz_decode_to_execute_FORMAL_PC_NEXT;
     end
     if(when_Pipeline_l124_7) begin
       execute_to_memory_FORMAL_PC_NEXT <= execute_FORMAL_PC_NEXT;
@@ -3963,49 +4818,67 @@ module VexRiscv (
       memory_to_writeBack_ENV_CTRL <= _zz_memory_to_writeBack_ENV_CTRL;
     end
     if(when_Pipeline_l124_33) begin
-      decode_to_execute_RS1 <= decode_RS1;
+      decode_to_execute_IS_MUL <= decode_IS_MUL;
     end
     if(when_Pipeline_l124_34) begin
-      decode_to_execute_RS2 <= decode_RS2;
+      execute_to_memory_IS_MUL <= execute_IS_MUL;
     end
     if(when_Pipeline_l124_35) begin
-      decode_to_execute_SRC2_FORCE_ZERO <= decode_SRC2_FORCE_ZERO;
+      decode_to_execute_IS_RS1_SIGNED <= decode_IS_RS1_SIGNED;
     end
     if(when_Pipeline_l124_36) begin
-      decode_to_execute_CSR_WRITE_OPCODE <= decode_CSR_WRITE_OPCODE;
+      decode_to_execute_IS_RS2_SIGNED <= decode_IS_RS2_SIGNED;
     end
     if(when_Pipeline_l124_37) begin
-      decode_to_execute_CSR_READ_OPCODE <= decode_CSR_READ_OPCODE;
+      decode_to_execute_IS_DIV <= decode_IS_DIV;
     end
     if(when_Pipeline_l124_38) begin
-      decode_to_execute_DO_EBREAK <= decode_DO_EBREAK;
+      execute_to_memory_IS_DIV <= execute_IS_DIV;
     end
     if(when_Pipeline_l124_39) begin
-      execute_to_memory_ALIGNEMENT_FAULT <= execute_ALIGNEMENT_FAULT;
+      decode_to_execute_RS1 <= decode_RS1;
     end
     if(when_Pipeline_l124_40) begin
-      execute_to_memory_MEMORY_ADDRESS_LOW <= execute_MEMORY_ADDRESS_LOW;
+      decode_to_execute_RS2 <= decode_RS2;
     end
     if(when_Pipeline_l124_41) begin
-      memory_to_writeBack_MEMORY_ADDRESS_LOW <= memory_MEMORY_ADDRESS_LOW;
+      decode_to_execute_SRC2_FORCE_ZERO <= decode_SRC2_FORCE_ZERO;
     end
     if(when_Pipeline_l124_42) begin
-      execute_to_memory_REGFILE_WRITE_DATA <= _zz_execute_to_memory_REGFILE_WRITE_DATA;
+      decode_to_execute_PREDICTION_HAD_BRANCHED2 <= decode_PREDICTION_HAD_BRANCHED2;
     end
     if(when_Pipeline_l124_43) begin
-      memory_to_writeBack_REGFILE_WRITE_DATA <= memory_REGFILE_WRITE_DATA;
+      decode_to_execute_CSR_WRITE_OPCODE <= decode_CSR_WRITE_OPCODE;
     end
     if(when_Pipeline_l124_44) begin
-      execute_to_memory_BRANCH_DO <= execute_BRANCH_DO;
+      decode_to_execute_CSR_READ_OPCODE <= decode_CSR_READ_OPCODE;
     end
     if(when_Pipeline_l124_45) begin
-      execute_to_memory_BRANCH_CALC <= execute_BRANCH_CALC;
+      decode_to_execute_DO_EBREAK <= decode_DO_EBREAK;
     end
     if(when_Pipeline_l124_46) begin
-      memory_to_writeBack_MEMORY_READ_DATA <= memory_MEMORY_READ_DATA;
+      execute_to_memory_ALIGNEMENT_FAULT <= execute_ALIGNEMENT_FAULT;
     end
-    if(when_Fetcher_l398) begin
-      _zz_IBusSimplePlugin_injector_decodeInput_payload_rsp_inst <= IBusSimplePlugin_injectionPort_payload;
+    if(when_Pipeline_l124_47) begin
+      execute_to_memory_MEMORY_ADDRESS_LOW <= execute_MEMORY_ADDRESS_LOW;
+    end
+    if(when_Pipeline_l124_48) begin
+      memory_to_writeBack_MEMORY_ADDRESS_LOW <= memory_MEMORY_ADDRESS_LOW;
+    end
+    if(when_Pipeline_l124_49) begin
+      execute_to_memory_REGFILE_WRITE_DATA <= _zz_decode_RS2_1;
+    end
+    if(when_Pipeline_l124_50) begin
+      memory_to_writeBack_REGFILE_WRITE_DATA <= _zz_decode_RS2;
+    end
+    if(when_Pipeline_l124_51) begin
+      execute_to_memory_BRANCH_DO <= execute_BRANCH_DO;
+    end
+    if(when_Pipeline_l124_52) begin
+      execute_to_memory_BRANCH_CALC <= execute_BRANCH_CALC;
+    end
+    if(when_Pipeline_l124_53) begin
+      memory_to_writeBack_MEMORY_READ_DATA <= memory_MEMORY_READ_DATA;
     end
     if(when_CsrPlugin_l1264) begin
       execute_CsrPlugin_csr_768 <= (decode_INSTRUCTION[31 : 20] == 12'h300);
@@ -4050,9 +4923,7 @@ module VexRiscv (
         CsrPlugin_mepc <= CsrPlugin_csrMapping_writeDataSignal[31 : 0];
       end
     end
-    if(iBus_cmd_ready) begin
-      iBus_cmd_rData_pc <= iBus_cmd_payload_pc;
-    end
+    iBusWishbone_DAT_MISO_regNext <= iBusWishbone_DAT_MISO;
     if(dBus_cmd_ready) begin
       dBus_cmd_rData_wr <= dBus_cmd_payload_wr;
       dBus_cmd_rData_address <= dBus_cmd_payload_address;
@@ -4067,11 +4938,27 @@ module VexRiscv (
       DebugPlugin_firstCycle <= 1'b1;
     end
     DebugPlugin_secondCycle <= DebugPlugin_firstCycle;
-    DebugPlugin_isPipBusy <= (({writeBack_arbitration_isValid,{memory_arbitration_isValid,{execute_arbitration_isValid,decode_arbitration_isValid}}} != 4'b0000) || IBusSimplePlugin_incomingInstruction);
+    DebugPlugin_isPipBusy <= (({writeBack_arbitration_isValid,{memory_arbitration_isValid,{execute_arbitration_isValid,decode_arbitration_isValid}}} != 4'b0000) || IBusCachedPlugin_incomingInstruction);
     if(writeBack_arbitration_isValid) begin
-      DebugPlugin_busReadDataReg <= _zz_lastStageRegFileWrite_payload_data;
+      DebugPlugin_busReadDataReg <= _zz_decode_RS2_2;
     end
     _zz_when_DebugPlugin_l244 <= debug_bus_cmd_payload_address[2];
+    if(debug_bus_cmd_valid) begin
+      case(switch_DebugPlugin_l256)
+        6'h10 : begin
+          if(debug_bus_cmd_payload_wr) begin
+            DebugPlugin_hardwareBreakpoints_0_pc <= debug_bus_cmd_payload_data[31 : 1];
+          end
+        end
+        6'h11 : begin
+          if(debug_bus_cmd_payload_wr) begin
+            DebugPlugin_hardwareBreakpoints_1_pc <= debug_bus_cmd_payload_data[31 : 1];
+          end
+        end
+        default : begin
+        end
+      endcase
+    end
     if(when_DebugPlugin_l284) begin
       DebugPlugin_busReadDataReg <= execute_PC;
     end
@@ -4087,6 +4974,8 @@ module VexRiscv (
       DebugPlugin_haltedByBreak <= 1'b0;
       DebugPlugin_debugUsed <= 1'b0;
       DebugPlugin_disableEbreak <= 1'b0;
+      DebugPlugin_hardwareBreakpoints_0_valid <= 1'b0;
+      DebugPlugin_hardwareBreakpoints_1_valid <= 1'b0;
     end else begin
       if(when_DebugPlugin_l225) begin
         DebugPlugin_godmode <= 1'b1;
@@ -4125,6 +5014,16 @@ module VexRiscv (
               end
             end
           end
+          6'h10 : begin
+            if(debug_bus_cmd_payload_wr) begin
+              DebugPlugin_hardwareBreakpoints_0_valid <= debug_bus_cmd_payload_data[0];
+            end
+          end
+          6'h11 : begin
+            if(debug_bus_cmd_payload_wr) begin
+              DebugPlugin_hardwareBreakpoints_1_valid <= debug_bus_cmd_payload_data[0];
+            end
+          end
           default : begin
           end
         endcase
@@ -4146,129 +5045,304 @@ module VexRiscv (
 
 endmodule
 
-module StreamFifoLowLatency (
-  input               io_push_valid,
-  output              io_push_ready,
-  input               io_push_payload_error,
-  input      [31:0]   io_push_payload_inst,
-  output reg          io_pop_valid,
-  input               io_pop_ready,
-  output reg          io_pop_payload_error,
-  output reg [31:0]   io_pop_payload_inst,
+module InstructionCache (
   input               io_flush,
-  output     [0:0]    io_occupancy,
+  input               io_cpu_prefetch_isValid,
+  output reg          io_cpu_prefetch_haltIt,
+  input      [31:0]   io_cpu_prefetch_pc,
+  input               io_cpu_fetch_isValid,
+  input               io_cpu_fetch_isStuck,
+  input               io_cpu_fetch_isRemoved,
+  input      [31:0]   io_cpu_fetch_pc,
+  output     [31:0]   io_cpu_fetch_data,
+  input      [31:0]   io_cpu_fetch_mmuRsp_physicalAddress,
+  input               io_cpu_fetch_mmuRsp_isIoAccess,
+  input               io_cpu_fetch_mmuRsp_isPaging,
+  input               io_cpu_fetch_mmuRsp_allowRead,
+  input               io_cpu_fetch_mmuRsp_allowWrite,
+  input               io_cpu_fetch_mmuRsp_allowExecute,
+  input               io_cpu_fetch_mmuRsp_exception,
+  input               io_cpu_fetch_mmuRsp_refilling,
+  input               io_cpu_fetch_mmuRsp_bypassTranslation,
+  output     [31:0]   io_cpu_fetch_physicalAddress,
+  input               io_cpu_decode_isValid,
+  input               io_cpu_decode_isStuck,
+  input      [31:0]   io_cpu_decode_pc,
+  output     [31:0]   io_cpu_decode_physicalAddress,
+  output     [31:0]   io_cpu_decode_data,
+  output              io_cpu_decode_cacheMiss,
+  output              io_cpu_decode_error,
+  output              io_cpu_decode_mmuRefilling,
+  output              io_cpu_decode_mmuException,
+  input               io_cpu_decode_isUser,
+  input               io_cpu_fill_valid,
+  input      [31:0]   io_cpu_fill_payload,
+  output              io_mem_cmd_valid,
+  input               io_mem_cmd_ready,
+  output     [31:0]   io_mem_cmd_payload_address,
+  output     [2:0]    io_mem_cmd_payload_size,
+  input               io_mem_rsp_valid,
+  input      [31:0]   io_mem_rsp_payload_data,
+  input               io_mem_rsp_payload_error,
+  input      [2:0]    _zz_when_Fetcher_l398,
+  input      [31:0]   _zz_io_cpu_fetch_data_regNextWhen,
   input               clk,
   input               reset
 );
-  reg                 when_Phase_l623;
-  reg                 pushPtr_willIncrement;
-  reg                 pushPtr_willClear;
-  wire                pushPtr_willOverflowIfInc;
-  wire                pushPtr_willOverflow;
-  reg                 popPtr_willIncrement;
-  reg                 popPtr_willClear;
-  wire                popPtr_willOverflowIfInc;
-  wire                popPtr_willOverflow;
-  wire                ptrMatch;
-  reg                 risingOccupancy;
-  wire                empty;
-  wire                full;
-  wire                pushing;
-  wire                popping;
-  wire                when_Stream_l995;
-  wire       [32:0]   _zz_io_pop_payload_error;
-  wire                when_Stream_l1008;
-  reg        [32:0]   _zz_io_pop_payload_error_1;
+  reg        [31:0]   _zz_banks_0_port1;
+  reg        [22:0]   _zz_ways_0_tags_port1;
+  wire       [22:0]   _zz_ways_0_tags_port;
+  reg                 _zz_1;
+  reg                 _zz_2;
+  reg                 lineLoader_fire;
+  reg                 lineLoader_valid;
+  (* keep , syn_keep *) reg        [31:0]   lineLoader_address /* synthesis syn_keep = 1 */ ;
+  reg                 lineLoader_hadError;
+  reg                 lineLoader_flushPending;
+  reg        [6:0]    lineLoader_flushCounter;
+  wire                when_InstructionCache_l338;
+  reg                 _zz_when_InstructionCache_l342;
+  wire                when_InstructionCache_l342;
+  wire                when_InstructionCache_l351;
+  reg                 lineLoader_cmdSent;
+  wire                io_mem_cmd_fire;
+  wire                when_Utils_l357;
+  reg                 lineLoader_wayToAllocate_willIncrement;
+  wire                lineLoader_wayToAllocate_willClear;
+  wire                lineLoader_wayToAllocate_willOverflowIfInc;
+  wire                lineLoader_wayToAllocate_willOverflow;
+  (* keep , syn_keep *) reg        [2:0]    lineLoader_wordIndex /* synthesis syn_keep = 1 */ ;
+  wire                lineLoader_write_tag_0_valid;
+  wire       [5:0]    lineLoader_write_tag_0_payload_address;
+  wire                lineLoader_write_tag_0_payload_data_valid;
+  wire                lineLoader_write_tag_0_payload_data_error;
+  wire       [20:0]   lineLoader_write_tag_0_payload_data_address;
+  wire                lineLoader_write_data_0_valid;
+  wire       [8:0]    lineLoader_write_data_0_payload_address;
+  wire       [31:0]   lineLoader_write_data_0_payload_data;
+  wire                when_InstructionCache_l401;
+  wire       [8:0]    _zz_fetchStage_read_banksValue_0_dataMem;
+  wire                _zz_fetchStage_read_banksValue_0_dataMem_1;
+  wire       [31:0]   fetchStage_read_banksValue_0_dataMem;
+  wire       [31:0]   fetchStage_read_banksValue_0_data;
+  wire       [5:0]    _zz_fetchStage_read_waysValues_0_tag_valid;
+  wire                _zz_fetchStage_read_waysValues_0_tag_valid_1;
+  wire                fetchStage_read_waysValues_0_tag_valid;
+  wire                fetchStage_read_waysValues_0_tag_error;
+  wire       [20:0]   fetchStage_read_waysValues_0_tag_address;
+  wire       [22:0]   _zz_fetchStage_read_waysValues_0_tag_valid_2;
+  wire                fetchStage_hit_hits_0;
+  wire                fetchStage_hit_valid;
+  wire                fetchStage_hit_error;
+  wire       [31:0]   fetchStage_hit_data;
+  wire       [31:0]   fetchStage_hit_word;
+  wire                when_InstructionCache_l435;
+  reg        [31:0]   io_cpu_fetch_data_regNextWhen;
+  wire                when_InstructionCache_l459;
+  reg        [31:0]   decodeStage_mmuRsp_physicalAddress;
+  reg                 decodeStage_mmuRsp_isIoAccess;
+  reg                 decodeStage_mmuRsp_isPaging;
+  reg                 decodeStage_mmuRsp_allowRead;
+  reg                 decodeStage_mmuRsp_allowWrite;
+  reg                 decodeStage_mmuRsp_allowExecute;
+  reg                 decodeStage_mmuRsp_exception;
+  reg                 decodeStage_mmuRsp_refilling;
+  reg                 decodeStage_mmuRsp_bypassTranslation;
+  wire                when_InstructionCache_l459_1;
+  reg                 decodeStage_hit_valid;
+  wire                when_InstructionCache_l459_2;
+  reg                 decodeStage_hit_error;
+  wire                when_Fetcher_l398;
+  (* ram_style = "block" *) reg [31:0] banks_0 [0:511];
+  (* ram_style = "block" *) reg [22:0] ways_0_tags [0:63];
 
-  always @(*) begin
-    when_Phase_l623 = 1'b0;
-    if(pushing) begin
-      when_Phase_l623 = 1'b1;
+  assign _zz_ways_0_tags_port = {lineLoader_write_tag_0_payload_data_address,{lineLoader_write_tag_0_payload_data_error,lineLoader_write_tag_0_payload_data_valid}};
+  always @(posedge clk) begin
+    if(_zz_1) begin
+      banks_0[lineLoader_write_data_0_payload_address] <= lineLoader_write_data_0_payload_data;
+    end
+  end
+
+  always @(posedge clk) begin
+    if(_zz_fetchStage_read_banksValue_0_dataMem_1) begin
+      _zz_banks_0_port1 <= banks_0[_zz_fetchStage_read_banksValue_0_dataMem];
+    end
+  end
+
+  always @(posedge clk) begin
+    if(_zz_2) begin
+      ways_0_tags[lineLoader_write_tag_0_payload_address] <= _zz_ways_0_tags_port;
+    end
+  end
+
+  always @(posedge clk) begin
+    if(_zz_fetchStage_read_waysValues_0_tag_valid_1) begin
+      _zz_ways_0_tags_port1 <= ways_0_tags[_zz_fetchStage_read_waysValues_0_tag_valid];
     end
   end
 
   always @(*) begin
-    pushPtr_willIncrement = 1'b0;
-    if(pushing) begin
-      pushPtr_willIncrement = 1'b1;
+    _zz_1 = 1'b0;
+    if(lineLoader_write_data_0_valid) begin
+      _zz_1 = 1'b1;
     end
   end
 
   always @(*) begin
-    pushPtr_willClear = 1'b0;
+    _zz_2 = 1'b0;
+    if(lineLoader_write_tag_0_valid) begin
+      _zz_2 = 1'b1;
+    end
+  end
+
+  always @(*) begin
+    lineLoader_fire = 1'b0;
+    if(io_mem_rsp_valid) begin
+      if(when_InstructionCache_l401) begin
+        lineLoader_fire = 1'b1;
+      end
+    end
+  end
+
+  always @(*) begin
+    io_cpu_prefetch_haltIt = (lineLoader_valid || lineLoader_flushPending);
+    if(when_InstructionCache_l338) begin
+      io_cpu_prefetch_haltIt = 1'b1;
+    end
+    if(when_InstructionCache_l342) begin
+      io_cpu_prefetch_haltIt = 1'b1;
+    end
     if(io_flush) begin
-      pushPtr_willClear = 1'b1;
+      io_cpu_prefetch_haltIt = 1'b1;
     end
   end
 
-  assign pushPtr_willOverflowIfInc = 1'b1;
-  assign pushPtr_willOverflow = (pushPtr_willOverflowIfInc && pushPtr_willIncrement);
+  assign when_InstructionCache_l338 = (! lineLoader_flushCounter[6]);
+  assign when_InstructionCache_l342 = (! _zz_when_InstructionCache_l342);
+  assign when_InstructionCache_l351 = (lineLoader_flushPending && (! (lineLoader_valid || io_cpu_fetch_isValid)));
+  assign io_mem_cmd_fire = (io_mem_cmd_valid && io_mem_cmd_ready);
+  assign io_mem_cmd_valid = (lineLoader_valid && (! lineLoader_cmdSent));
+  assign io_mem_cmd_payload_address = {lineLoader_address[31 : 5],5'h0};
+  assign io_mem_cmd_payload_size = 3'b101;
+  assign when_Utils_l357 = (! lineLoader_valid);
   always @(*) begin
-    popPtr_willIncrement = 1'b0;
-    if(popping) begin
-      popPtr_willIncrement = 1'b1;
+    lineLoader_wayToAllocate_willIncrement = 1'b0;
+    if(when_Utils_l357) begin
+      lineLoader_wayToAllocate_willIncrement = 1'b1;
     end
   end
 
-  always @(*) begin
-    popPtr_willClear = 1'b0;
-    if(io_flush) begin
-      popPtr_willClear = 1'b1;
-    end
-  end
-
-  assign popPtr_willOverflowIfInc = 1'b1;
-  assign popPtr_willOverflow = (popPtr_willOverflowIfInc && popPtr_willIncrement);
-  assign ptrMatch = 1'b1;
-  assign empty = (ptrMatch && (! risingOccupancy));
-  assign full = (ptrMatch && risingOccupancy);
-  assign pushing = (io_push_valid && io_push_ready);
-  assign popping = (io_pop_valid && io_pop_ready);
-  assign io_push_ready = (! full);
-  assign when_Stream_l995 = (! empty);
-  always @(*) begin
-    if(when_Stream_l995) begin
-      io_pop_valid = 1'b1;
-    end else begin
-      io_pop_valid = io_push_valid;
-    end
-  end
-
-  assign _zz_io_pop_payload_error = _zz_io_pop_payload_error_1;
-  always @(*) begin
-    if(when_Stream_l995) begin
-      io_pop_payload_error = _zz_io_pop_payload_error[0];
-    end else begin
-      io_pop_payload_error = io_push_payload_error;
-    end
-  end
-
-  always @(*) begin
-    if(when_Stream_l995) begin
-      io_pop_payload_inst = _zz_io_pop_payload_error[32 : 1];
-    end else begin
-      io_pop_payload_inst = io_push_payload_inst;
-    end
-  end
-
-  assign when_Stream_l1008 = (pushing != popping);
-  assign io_occupancy = (risingOccupancy && ptrMatch);
+  assign lineLoader_wayToAllocate_willClear = 1'b0;
+  assign lineLoader_wayToAllocate_willOverflowIfInc = 1'b1;
+  assign lineLoader_wayToAllocate_willOverflow = (lineLoader_wayToAllocate_willOverflowIfInc && lineLoader_wayToAllocate_willIncrement);
+  assign lineLoader_write_tag_0_valid = ((1'b1 && lineLoader_fire) || (! lineLoader_flushCounter[6]));
+  assign lineLoader_write_tag_0_payload_address = (lineLoader_flushCounter[6] ? lineLoader_address[10 : 5] : lineLoader_flushCounter[5 : 0]);
+  assign lineLoader_write_tag_0_payload_data_valid = lineLoader_flushCounter[6];
+  assign lineLoader_write_tag_0_payload_data_error = (lineLoader_hadError || io_mem_rsp_payload_error);
+  assign lineLoader_write_tag_0_payload_data_address = lineLoader_address[31 : 11];
+  assign lineLoader_write_data_0_valid = (io_mem_rsp_valid && 1'b1);
+  assign lineLoader_write_data_0_payload_address = {lineLoader_address[10 : 5],lineLoader_wordIndex};
+  assign lineLoader_write_data_0_payload_data = io_mem_rsp_payload_data;
+  assign when_InstructionCache_l401 = (lineLoader_wordIndex == 3'b111);
+  assign _zz_fetchStage_read_banksValue_0_dataMem = io_cpu_prefetch_pc[10 : 2];
+  assign _zz_fetchStage_read_banksValue_0_dataMem_1 = (! io_cpu_fetch_isStuck);
+  assign fetchStage_read_banksValue_0_dataMem = _zz_banks_0_port1;
+  assign fetchStage_read_banksValue_0_data = fetchStage_read_banksValue_0_dataMem[31 : 0];
+  assign _zz_fetchStage_read_waysValues_0_tag_valid = io_cpu_prefetch_pc[10 : 5];
+  assign _zz_fetchStage_read_waysValues_0_tag_valid_1 = (! io_cpu_fetch_isStuck);
+  assign _zz_fetchStage_read_waysValues_0_tag_valid_2 = _zz_ways_0_tags_port1;
+  assign fetchStage_read_waysValues_0_tag_valid = _zz_fetchStage_read_waysValues_0_tag_valid_2[0];
+  assign fetchStage_read_waysValues_0_tag_error = _zz_fetchStage_read_waysValues_0_tag_valid_2[1];
+  assign fetchStage_read_waysValues_0_tag_address = _zz_fetchStage_read_waysValues_0_tag_valid_2[22 : 2];
+  assign fetchStage_hit_hits_0 = (fetchStage_read_waysValues_0_tag_valid && (fetchStage_read_waysValues_0_tag_address == io_cpu_fetch_mmuRsp_physicalAddress[31 : 11]));
+  assign fetchStage_hit_valid = (fetchStage_hit_hits_0 != 1'b0);
+  assign fetchStage_hit_error = fetchStage_read_waysValues_0_tag_error;
+  assign fetchStage_hit_data = fetchStage_read_banksValue_0_data;
+  assign fetchStage_hit_word = fetchStage_hit_data;
+  assign io_cpu_fetch_data = fetchStage_hit_word;
+  assign when_InstructionCache_l435 = (! io_cpu_decode_isStuck);
+  assign io_cpu_decode_data = io_cpu_fetch_data_regNextWhen;
+  assign io_cpu_fetch_physicalAddress = io_cpu_fetch_mmuRsp_physicalAddress;
+  assign when_InstructionCache_l459 = (! io_cpu_decode_isStuck);
+  assign when_InstructionCache_l459_1 = (! io_cpu_decode_isStuck);
+  assign when_InstructionCache_l459_2 = (! io_cpu_decode_isStuck);
+  assign io_cpu_decode_cacheMiss = (! decodeStage_hit_valid);
+  assign io_cpu_decode_error = (decodeStage_hit_error || ((! decodeStage_mmuRsp_isPaging) && (decodeStage_mmuRsp_exception || (! decodeStage_mmuRsp_allowExecute))));
+  assign io_cpu_decode_mmuRefilling = decodeStage_mmuRsp_refilling;
+  assign io_cpu_decode_mmuException = (((! decodeStage_mmuRsp_refilling) && decodeStage_mmuRsp_isPaging) && (decodeStage_mmuRsp_exception || (! decodeStage_mmuRsp_allowExecute)));
+  assign io_cpu_decode_physicalAddress = decodeStage_mmuRsp_physicalAddress;
+  assign when_Fetcher_l398 = (_zz_when_Fetcher_l398 != 3'b000);
   always @(posedge clk) begin
     if(reset) begin
-      risingOccupancy <= 1'b0;
+      lineLoader_valid <= 1'b0;
+      lineLoader_hadError <= 1'b0;
+      lineLoader_flushPending <= 1'b1;
+      lineLoader_cmdSent <= 1'b0;
+      lineLoader_wordIndex <= 3'b000;
     end else begin
-      if(when_Stream_l1008) begin
-        risingOccupancy <= pushing;
+      if(lineLoader_fire) begin
+        lineLoader_valid <= 1'b0;
+      end
+      if(lineLoader_fire) begin
+        lineLoader_hadError <= 1'b0;
+      end
+      if(io_cpu_fill_valid) begin
+        lineLoader_valid <= 1'b1;
       end
       if(io_flush) begin
-        risingOccupancy <= 1'b0;
+        lineLoader_flushPending <= 1'b1;
+      end
+      if(when_InstructionCache_l351) begin
+        lineLoader_flushPending <= 1'b0;
+      end
+      if(io_mem_cmd_fire) begin
+        lineLoader_cmdSent <= 1'b1;
+      end
+      if(lineLoader_fire) begin
+        lineLoader_cmdSent <= 1'b0;
+      end
+      if(io_mem_rsp_valid) begin
+        lineLoader_wordIndex <= (lineLoader_wordIndex + 3'b001);
+        if(io_mem_rsp_payload_error) begin
+          lineLoader_hadError <= 1'b1;
+        end
       end
     end
   end
 
   always @(posedge clk) begin
-    if(when_Phase_l623) begin
-      _zz_io_pop_payload_error_1 <= {io_push_payload_inst,io_push_payload_error};
+    if(io_cpu_fill_valid) begin
+      lineLoader_address <= io_cpu_fill_payload;
+    end
+    if(when_InstructionCache_l338) begin
+      lineLoader_flushCounter <= (lineLoader_flushCounter + 7'h01);
+    end
+    _zz_when_InstructionCache_l342 <= lineLoader_flushCounter[6];
+    if(when_InstructionCache_l351) begin
+      lineLoader_flushCounter <= 7'h0;
+    end
+    if(when_InstructionCache_l435) begin
+      io_cpu_fetch_data_regNextWhen <= io_cpu_fetch_data;
+    end
+    if(when_InstructionCache_l459) begin
+      decodeStage_mmuRsp_physicalAddress <= io_cpu_fetch_mmuRsp_physicalAddress;
+      decodeStage_mmuRsp_isIoAccess <= io_cpu_fetch_mmuRsp_isIoAccess;
+      decodeStage_mmuRsp_isPaging <= io_cpu_fetch_mmuRsp_isPaging;
+      decodeStage_mmuRsp_allowRead <= io_cpu_fetch_mmuRsp_allowRead;
+      decodeStage_mmuRsp_allowWrite <= io_cpu_fetch_mmuRsp_allowWrite;
+      decodeStage_mmuRsp_allowExecute <= io_cpu_fetch_mmuRsp_allowExecute;
+      decodeStage_mmuRsp_exception <= io_cpu_fetch_mmuRsp_exception;
+      decodeStage_mmuRsp_refilling <= io_cpu_fetch_mmuRsp_refilling;
+      decodeStage_mmuRsp_bypassTranslation <= io_cpu_fetch_mmuRsp_bypassTranslation;
+    end
+    if(when_InstructionCache_l459_1) begin
+      decodeStage_hit_valid <= fetchStage_hit_valid;
+    end
+    if(when_InstructionCache_l459_2) begin
+      decodeStage_hit_error <= fetchStage_hit_error;
+    end
+    if(when_Fetcher_l398) begin
+      io_cpu_fetch_data_regNextWhen <= _zz_io_cpu_fetch_data_regNextWhen;
     end
   end
 

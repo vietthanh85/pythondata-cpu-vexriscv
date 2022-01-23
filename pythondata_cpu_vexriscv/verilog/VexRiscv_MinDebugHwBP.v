@@ -89,6 +89,8 @@ module VexRiscv (
   wire                IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_payload_error;
   wire       [31:0]   IBusSimplePlugin_rspJoin_rspBuffer_c_io_pop_payload_inst;
   wire       [0:0]    IBusSimplePlugin_rspJoin_rspBuffer_c_io_occupancy;
+  wire       [30:0]   _zz_decode_DO_EBREAK;
+  wire       [30:0]   _zz_decode_DO_EBREAK_1;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_1;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_2;
@@ -800,6 +802,10 @@ module VexRiscv (
   reg                 DebugPlugin_debugUsed /* verilator public */ ;
   reg                 DebugPlugin_disableEbreak;
   wire                DebugPlugin_allowEBreak;
+  reg                 DebugPlugin_hardwareBreakpoints_0_valid;
+  reg        [30:0]   DebugPlugin_hardwareBreakpoints_0_pc;
+  reg                 DebugPlugin_hardwareBreakpoints_1_valid;
+  reg        [30:0]   DebugPlugin_hardwareBreakpoints_1_pc;
   reg        [31:0]   DebugPlugin_busReadDataReg;
   reg                 _zz_when_DebugPlugin_l244;
   wire                when_DebugPlugin_l244;
@@ -1047,6 +1053,8 @@ module VexRiscv (
   (* ram_style = "block" *) reg [31:0] RegFilePlugin_regFile [0:31] /* verilator public */ ;
 
   assign _zz_when = ({BranchPlugin_branchExceptionPort_valid,DBusSimplePlugin_memoryExceptionPort_valid} != 2'b00);
+  assign _zz_decode_DO_EBREAK = (decode_PC >>> 1);
+  assign _zz_decode_DO_EBREAK_1 = (decode_PC >>> 1);
   assign _zz_IBusSimplePlugin_jump_pcLoad_payload_1 = (_zz_IBusSimplePlugin_jump_pcLoad_payload & (~ _zz_IBusSimplePlugin_jump_pcLoad_payload_2));
   assign _zz_IBusSimplePlugin_jump_pcLoad_payload_2 = (_zz_IBusSimplePlugin_jump_pcLoad_payload - 2'b01);
   assign _zz_IBusSimplePlugin_fetchPc_pc_1 = {IBusSimplePlugin_fetchPc_inc,2'b00};
@@ -1872,7 +1880,7 @@ module VexRiscv (
   assign execute_REGFILE_WRITE_DATA = _zz_execute_REGFILE_WRITE_DATA;
   assign memory_MEMORY_ADDRESS_LOW = execute_to_memory_MEMORY_ADDRESS_LOW;
   assign execute_MEMORY_ADDRESS_LOW = dBus_cmd_payload_address[1 : 0];
-  assign decode_DO_EBREAK = (((! DebugPlugin_haltIt) && (decode_IS_EBREAK || 1'b0)) && DebugPlugin_allowEBreak);
+  assign decode_DO_EBREAK = (((! DebugPlugin_haltIt) && (decode_IS_EBREAK || ((1'b0 || (DebugPlugin_hardwareBreakpoints_0_valid && (DebugPlugin_hardwareBreakpoints_0_pc == _zz_decode_DO_EBREAK))) || (DebugPlugin_hardwareBreakpoints_1_valid && (DebugPlugin_hardwareBreakpoints_1_pc == _zz_decode_DO_EBREAK_1))))) && DebugPlugin_allowEBreak);
   assign decode_CSR_READ_OPCODE = (decode_INSTRUCTION[13 : 7] != 7'h20);
   assign decode_CSR_WRITE_OPCODE = (! (((decode_INSTRUCTION[14 : 13] == 2'b01) && (decode_INSTRUCTION[19 : 15] == 5'h0)) || ((decode_INSTRUCTION[14 : 13] == 2'b11) && (decode_INSTRUCTION[19 : 15] == 5'h0))));
   assign decode_SRC2_FORCE_ZERO = (decode_SRC_ADD_ZERO && (! decode_SRC_USE_SUB_LESS));
@@ -4072,6 +4080,22 @@ module VexRiscv (
       DebugPlugin_busReadDataReg <= _zz_lastStageRegFileWrite_payload_data;
     end
     _zz_when_DebugPlugin_l244 <= debug_bus_cmd_payload_address[2];
+    if(debug_bus_cmd_valid) begin
+      case(switch_DebugPlugin_l256)
+        6'h10 : begin
+          if(debug_bus_cmd_payload_wr) begin
+            DebugPlugin_hardwareBreakpoints_0_pc <= debug_bus_cmd_payload_data[31 : 1];
+          end
+        end
+        6'h11 : begin
+          if(debug_bus_cmd_payload_wr) begin
+            DebugPlugin_hardwareBreakpoints_1_pc <= debug_bus_cmd_payload_data[31 : 1];
+          end
+        end
+        default : begin
+        end
+      endcase
+    end
     if(when_DebugPlugin_l284) begin
       DebugPlugin_busReadDataReg <= execute_PC;
     end
@@ -4087,6 +4111,8 @@ module VexRiscv (
       DebugPlugin_haltedByBreak <= 1'b0;
       DebugPlugin_debugUsed <= 1'b0;
       DebugPlugin_disableEbreak <= 1'b0;
+      DebugPlugin_hardwareBreakpoints_0_valid <= 1'b0;
+      DebugPlugin_hardwareBreakpoints_1_valid <= 1'b0;
     end else begin
       if(when_DebugPlugin_l225) begin
         DebugPlugin_godmode <= 1'b1;
@@ -4123,6 +4149,16 @@ module VexRiscv (
               if(when_DebugPlugin_l264_1) begin
                 DebugPlugin_disableEbreak <= 1'b0;
               end
+            end
+          end
+          6'h10 : begin
+            if(debug_bus_cmd_payload_wr) begin
+              DebugPlugin_hardwareBreakpoints_0_valid <= debug_bus_cmd_payload_data[0];
+            end
+          end
+          6'h11 : begin
+            if(debug_bus_cmd_payload_wr) begin
+              DebugPlugin_hardwareBreakpoints_1_valid <= debug_bus_cmd_payload_data[0];
             end
           end
           default : begin
