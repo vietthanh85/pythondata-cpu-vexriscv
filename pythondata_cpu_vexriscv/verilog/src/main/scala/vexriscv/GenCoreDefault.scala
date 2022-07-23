@@ -67,7 +67,7 @@ object GenCoreDefault{
       opt[Int]("pmpRegions")    action { (v, c) => c.copy(pmpRegions = v)   } text("Number of PMP regions, 0 disables PMP")
       opt[Int]("pmpGranularity")    action { (v, c) => c.copy(pmpGranularity = v)   } text("Granularity of PMP regions (in bytes)")
       opt[Boolean]("mulDiv")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32IM")
-      opt[Boolean]("cfu")       action { (v, c) => c.copy(cfu = v)   } text("If true, add SIMD ADD custom function unit")
+      opt[Boolean]("cfu")       action { (v, c) => c.copy(cfu = v)   } text("If true, add custom function unit interface")
       opt[Boolean]("atomics")    action { (v, c) => c.copy(atomics = v)   } text("set RV32I[A]")
       opt[Boolean]("compressedGen")    action { (v, c) => c.copy(compressedGen = v)   } text("set RV32I[C]")
       opt[Boolean]("singleCycleMulDiv")    action { (v, c) => c.copy(singleCycleMulDiv = v)   } text("If true, MUL/DIV are single-cycle")
@@ -246,6 +246,7 @@ object GenCoreDefault{
           new CfuPlugin(
             stageCount = 1,
             allowZeroLatency = true,
+            withEnable = false,
             encodings = List(
               // CFU R-type
               CfuPluginEncoding (
