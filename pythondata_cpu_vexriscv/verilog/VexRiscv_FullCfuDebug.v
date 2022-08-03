@@ -1,6 +1,6 @@
 // Generator : SpinalHDL v1.7.1    git head : 0444bb76ab1d6e19f0ec46bc03c4769776deb7d5
 // Component : VexRiscv
-// Git hash  : 9808539ecfcc3be1bd4d7b65667875ad776e3182
+// Git hash  : 11ac8e1c0c66fa0537053980b47757d97dbddf84
 
 `timescale 1ns/1ps
 
@@ -1517,7 +1517,7 @@ module VexRiscv (
   reg [39:0] decode_to_execute_CfuPlugin_CFU_INPUT_2_KIND_string;
   `endif
 
-  (* ram_style = "block" *) reg [31:0] RegFilePlugin_regFile [0:31] /* verilator public */ ;
+  (* no_rw_check , ram_style = "block" *) reg [31:0] RegFilePlugin_regFile [0:31] /* verilator public */ ;
 
   assign _zz_when = ({decodeExceptionPort_valid,IBusCachedPlugin_decodeExceptionPort_valid} != 2'b00);
   assign _zz_when_1 = ({CsrPlugin_selfException_valid,BranchPlugin_branchExceptionPort_valid} != 2'b00);
@@ -6380,11 +6380,11 @@ module DataCache (
   reg                 loader_valid_regNext;
   wire                when_DataCache_l1122;
   wire                when_DataCache_l1125;
-  (* ram_style = "block" *) reg [21:0] ways_0_tags [0:127];
-  (* ram_style = "block" *) reg [7:0] ways_0_data_symbol0 [0:1023];
-  (* ram_style = "block" *) reg [7:0] ways_0_data_symbol1 [0:1023];
-  (* ram_style = "block" *) reg [7:0] ways_0_data_symbol2 [0:1023];
-  (* ram_style = "block" *) reg [7:0] ways_0_data_symbol3 [0:1023];
+  (* no_rw_check , ram_style = "block" *) reg [21:0] ways_0_tags [0:127];
+  (* no_rw_check , ram_style = "block" *) reg [7:0] ways_0_data_symbol0 [0:1023];
+  (* no_rw_check , ram_style = "block" *) reg [7:0] ways_0_data_symbol1 [0:1023];
+  (* no_rw_check , ram_style = "block" *) reg [7:0] ways_0_data_symbol2 [0:1023];
+  (* no_rw_check , ram_style = "block" *) reg [7:0] ways_0_data_symbol3 [0:1023];
   reg [7:0] _zz_ways_0_datasymbol_read;
   reg [7:0] _zz_ways_0_datasymbol_read_1;
   reg [7:0] _zz_ways_0_datasymbol_read_2;
@@ -7117,8 +7117,8 @@ module InstructionCache (
   wire                when_InstructionCache_l459_2;
   reg                 decodeStage_hit_error;
   wire                when_Fetcher_l401;
-  (* ram_style = "block" *) reg [31:0] banks_0 [0:1023];
-  (* ram_style = "block" *) reg [21:0] ways_0_tags [0:127];
+  (* no_rw_check , ram_style = "block" *) reg [31:0] banks_0 [0:1023];
+  (* no_rw_check , ram_style = "block" *) reg [21:0] ways_0_tags [0:127];
 
   assign _zz_ways_0_tags_port = {lineLoader_write_tag_0_payload_data_address,{lineLoader_write_tag_0_payload_data_error,lineLoader_write_tag_0_payload_data_valid}};
   always @(posedge clk) begin
