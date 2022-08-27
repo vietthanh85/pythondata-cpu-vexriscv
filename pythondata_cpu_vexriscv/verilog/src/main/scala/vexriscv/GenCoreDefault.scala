@@ -148,7 +148,7 @@ object GenCoreDefault{
               catchIllegal = true,
               catchUnaligned = true,
               withLrSc = linux || argConfig.atomics,
-              withAmo = linux,
+              withAmo = linux || argConfig.atomics,
               earlyWaysHits = argConfig.dBusCachedEarlyWaysHits
             ),
             memoryTranslatorPortConfig = if(linux) MmuPortConfig(portTlbSize = 4) else null,
