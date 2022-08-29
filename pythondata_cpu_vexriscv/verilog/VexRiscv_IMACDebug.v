@@ -1,6 +1,6 @@
 // Generator : SpinalHDL v1.7.1    git head : 0444bb76ab1d6e19f0ec46bc03c4769776deb7d5
 // Component : VexRiscv
-// Git hash  : 11ac8e1c0c66fa0537053980b47757d97dbddf84
+// Git hash  : 581fcb065adf7ea8b626f939ff51679d4c95872f
 
 `timescale 1ns/1ps
 
@@ -82,6 +82,8 @@ module VexRiscv (
   wire                dataCache_1_io_cpu_execute_isValid;
   wire       [31:0]   dataCache_1_io_cpu_execute_address;
   reg                 dataCache_1_io_cpu_execute_args_isLrsc;
+  wire                dataCache_1_io_cpu_execute_args_amoCtrl_swap;
+  wire       [2:0]    dataCache_1_io_cpu_execute_args_amoCtrl_alu;
   wire                dataCache_1_io_cpu_memory_isValid;
   wire       [31:0]   dataCache_1_io_cpu_memory_address;
   reg                 dataCache_1_io_cpu_memory_mmuRsp_isIoAccess;
@@ -158,19 +160,24 @@ module VexRiscv (
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_2;
   wire                _zz_decode_LEGAL_INSTRUCTION_3;
   wire       [0:0]    _zz_decode_LEGAL_INSTRUCTION_4;
-  wire       [15:0]   _zz_decode_LEGAL_INSTRUCTION_5;
+  wire       [16:0]   _zz_decode_LEGAL_INSTRUCTION_5;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_6;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_7;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_8;
   wire                _zz_decode_LEGAL_INSTRUCTION_9;
   wire       [0:0]    _zz_decode_LEGAL_INSTRUCTION_10;
-  wire       [9:0]    _zz_decode_LEGAL_INSTRUCTION_11;
+  wire       [10:0]   _zz_decode_LEGAL_INSTRUCTION_11;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_12;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_13;
   wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_14;
   wire                _zz_decode_LEGAL_INSTRUCTION_15;
   wire       [0:0]    _zz_decode_LEGAL_INSTRUCTION_16;
-  wire       [3:0]    _zz_decode_LEGAL_INSTRUCTION_17;
+  wire       [4:0]    _zz_decode_LEGAL_INSTRUCTION_17;
+  wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_18;
+  wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_19;
+  wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_20;
+  wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_21;
+  wire       [31:0]   _zz_decode_LEGAL_INSTRUCTION_22;
   wire       [3:0]    _zz__zz_IBusCachedPlugin_jump_pcLoad_payload_1;
   reg        [31:0]   _zz_IBusCachedPlugin_jump_pcLoad_payload_5;
   wire       [1:0]    _zz_IBusCachedPlugin_jump_pcLoad_payload_6;
@@ -215,7 +222,7 @@ module VexRiscv (
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_7;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_8;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_9;
-  wire       [26:0]   _zz__zz_decode_IS_RS2_SIGNED_10;
+  wire       [27:0]   _zz__zz_decode_IS_RS2_SIGNED_10;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_11;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_12;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_13;
@@ -231,7 +238,7 @@ module VexRiscv (
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_23;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_24;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_25;
-  wire       [22:0]   _zz__zz_decode_IS_RS2_SIGNED_26;
+  wire       [23:0]   _zz__zz_decode_IS_RS2_SIGNED_26;
   wire       [2:0]    _zz__zz_decode_IS_RS2_SIGNED_27;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_28;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_29;
@@ -242,7 +249,7 @@ module VexRiscv (
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_34;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_35;
   wire                _zz__zz_decode_IS_RS2_SIGNED_36;
-  wire       [19:0]   _zz__zz_decode_IS_RS2_SIGNED_37;
+  wire       [20:0]   _zz__zz_decode_IS_RS2_SIGNED_37;
   wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_38;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_39;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_40;
@@ -251,128 +258,129 @@ module VexRiscv (
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_43;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_44;
   wire                _zz__zz_decode_IS_RS2_SIGNED_45;
-  wire       [16:0]   _zz__zz_decode_IS_RS2_SIGNED_46;
-  wire       [2:0]    _zz__zz_decode_IS_RS2_SIGNED_47;
+  wire       [17:0]   _zz__zz_decode_IS_RS2_SIGNED_46;
+  wire       [3:0]    _zz__zz_decode_IS_RS2_SIGNED_47;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_48;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_49;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_50;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_51;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_52;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_51;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_52;
   wire                _zz__zz_decode_IS_RS2_SIGNED_53;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_54;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_55;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_56;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_56;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_57;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_58;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_59;
+  wire       [14:0]   _zz__zz_decode_IS_RS2_SIGNED_58;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_59;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_60;
-  wire       [3:0]    _zz__zz_decode_IS_RS2_SIGNED_61;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_62;
+  wire       [4:0]    _zz__zz_decode_IS_RS2_SIGNED_61;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_62;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_63;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_64;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_64;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_65;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_66;
-  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_67;
-  wire       [13:0]   _zz__zz_decode_IS_RS2_SIGNED_68;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_69;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_70;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_66;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_67;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_68;
+  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_69;
+  wire       [2:0]    _zz__zz_decode_IS_RS2_SIGNED_70;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_71;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_72;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_73;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_72;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_73;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_74;
-  wire       [4:0]    _zz__zz_decode_IS_RS2_SIGNED_75;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_76;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_77;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_78;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_75;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_76;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_77;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_78;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_79;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_80;
-  wire       [2:0]    _zz__zz_decode_IS_RS2_SIGNED_81;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_82;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_83;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_84;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_85;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_86;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_87;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_88;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_89;
-  wire       [3:0]    _zz__zz_decode_IS_RS2_SIGNED_90;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_91;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_92;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_93;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_80;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_81;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_82;
+  wire       [2:0]    _zz__zz_decode_IS_RS2_SIGNED_83;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_84;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_85;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_86;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_87;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_88;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_89;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_90;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_91;
+  wire       [3:0]    _zz__zz_decode_IS_RS2_SIGNED_92;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_93;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_94;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_95;
-  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_96;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_97;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_98;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_95;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_96;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_97;
+  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_98;
   wire                _zz__zz_decode_IS_RS2_SIGNED_99;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_100;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_101;
-  wire       [6:0]    _zz__zz_decode_IS_RS2_SIGNED_102;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_103;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_104;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_105;
-  wire       [4:0]    _zz__zz_decode_IS_RS2_SIGNED_106;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_107;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_108;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_109;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_101;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_102;
+  wire       [10:0]   _zz__zz_decode_IS_RS2_SIGNED_103;
+  wire       [6:0]    _zz__zz_decode_IS_RS2_SIGNED_104;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_105;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_106;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_107;
+  wire       [4:0]    _zz__zz_decode_IS_RS2_SIGNED_108;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_109;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_110;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_111;
-  wire       [2:0]    _zz__zz_decode_IS_RS2_SIGNED_112;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_113;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_114;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_115;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_116;
-  wire       [9:0]    _zz__zz_decode_IS_RS2_SIGNED_117;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_118;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_119;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_111;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_112;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_113;
+  wire       [2:0]    _zz__zz_decode_IS_RS2_SIGNED_114;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_115;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_116;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_117;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_118;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_119;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_120;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_121;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_121;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_122;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_123;
-  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_124;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_125;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_126;
-  wire       [7:0]    _zz__zz_decode_IS_RS2_SIGNED_127;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_128;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_123;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_124;
+  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_125;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_126;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_127;
+  wire       [7:0]    _zz__zz_decode_IS_RS2_SIGNED_128;
   wire                _zz__zz_decode_IS_RS2_SIGNED_129;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_130;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_131;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_130;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_131;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_132;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_133;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_133;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_134;
-  wire       [5:0]    _zz__zz_decode_IS_RS2_SIGNED_135;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_136;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_137;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_138;
-  wire       [4:0]    _zz__zz_decode_IS_RS2_SIGNED_139;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_140;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_141;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_142;
-  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_143;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_144;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_135;
+  wire       [5:0]    _zz__zz_decode_IS_RS2_SIGNED_136;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_137;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_138;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_139;
+  wire       [4:0]    _zz__zz_decode_IS_RS2_SIGNED_140;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_141;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_142;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_143;
+  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_144;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_145;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_146;
-  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_147;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_148;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_146;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_147;
+  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_148;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_149;
-  wire       [3:0]    _zz__zz_decode_IS_RS2_SIGNED_150;
-  wire                _zz__zz_decode_IS_RS2_SIGNED_151;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_150;
+  wire       [3:0]    _zz__zz_decode_IS_RS2_SIGNED_151;
   wire                _zz__zz_decode_IS_RS2_SIGNED_152;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_153;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_154;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_155;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_156;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_157;
+  wire                _zz__zz_decode_IS_RS2_SIGNED_153;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_154;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_155;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_156;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_157;
   wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_158;
-  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_159;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_160;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_159;
+  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_160;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_161;
-  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_162;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_162;
   wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_163;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_164;
+  wire       [1:0]    _zz__zz_decode_IS_RS2_SIGNED_164;
   wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_165;
-  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_166;
-  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_167;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_166;
+  wire       [0:0]    _zz__zz_decode_IS_RS2_SIGNED_167;
+  wire       [31:0]   _zz__zz_decode_IS_RS2_SIGNED_168;
   wire                _zz_RegFilePlugin_regFile_port;
   wire                _zz_decode_RegFilePlugin_rs1Data;
   wire                _zz_RegFilePlugin_regFile_port_1;
@@ -573,6 +581,7 @@ module VexRiscv (
   wire                writeBack_MEMORY_ENABLE;
   wire       [31:0]   memory_REGFILE_WRITE_DATA;
   wire                memory_MEMORY_ENABLE;
+  wire                execute_MEMORY_AMO;
   wire                execute_MEMORY_LRSC;
   wire                execute_MEMORY_FORCE_CONSTISTENCY;
   (* keep , syn_keep *) wire       [31:0]   execute_RS1 /* synthesis syn_keep = 1 */ ;
@@ -582,6 +591,7 @@ module VexRiscv (
   wire       [31:0]   execute_SRC_ADD;
   wire                execute_MEMORY_ENABLE;
   wire       [31:0]   execute_INSTRUCTION;
+  wire                decode_MEMORY_AMO;
   wire                decode_MEMORY_LRSC;
   reg                 _zz_decode_MEMORY_FORCE_CONSTISTENCY;
   wire                decode_MEMORY_ENABLE;
@@ -970,7 +980,7 @@ module VexRiscv (
   reg        [31:0]   _zz_writeBack_DBusCachedPlugin_rspFormated_3;
   reg        [31:0]   writeBack_DBusCachedPlugin_rspFormated;
   wire                when_DBusCachedPlugin_l492;
-  wire       [33:0]   _zz_decode_IS_RS2_SIGNED;
+  wire       [34:0]   _zz_decode_IS_RS2_SIGNED;
   wire                _zz_decode_IS_RS2_SIGNED_1;
   wire                _zz_decode_IS_RS2_SIGNED_2;
   wire                _zz_decode_IS_RS2_SIGNED_3;
@@ -1284,78 +1294,80 @@ module VexRiscv (
   wire                when_Pipeline_l124_29;
   reg                 memory_to_writeBack_MEMORY_LRSC;
   wire                when_Pipeline_l124_30;
-  reg                 decode_to_execute_MEMORY_MANAGMENT;
+  reg                 decode_to_execute_MEMORY_AMO;
   wire                when_Pipeline_l124_31;
-  reg                 decode_to_execute_SRC_LESS_UNSIGNED;
+  reg                 decode_to_execute_MEMORY_MANAGMENT;
   wire                when_Pipeline_l124_32;
-  reg        [1:0]    decode_to_execute_ALU_BITWISE_CTRL;
+  reg                 decode_to_execute_SRC_LESS_UNSIGNED;
   wire                when_Pipeline_l124_33;
-  reg        [1:0]    decode_to_execute_SHIFT_CTRL;
+  reg        [1:0]    decode_to_execute_ALU_BITWISE_CTRL;
   wire                when_Pipeline_l124_34;
-  reg        [1:0]    execute_to_memory_SHIFT_CTRL;
+  reg        [1:0]    decode_to_execute_SHIFT_CTRL;
   wire                when_Pipeline_l124_35;
-  reg        [1:0]    decode_to_execute_BRANCH_CTRL;
+  reg        [1:0]    execute_to_memory_SHIFT_CTRL;
   wire                when_Pipeline_l124_36;
-  reg                 decode_to_execute_IS_CSR;
+  reg        [1:0]    decode_to_execute_BRANCH_CTRL;
   wire                when_Pipeline_l124_37;
-  reg        [1:0]    decode_to_execute_ENV_CTRL;
+  reg                 decode_to_execute_IS_CSR;
   wire                when_Pipeline_l124_38;
-  reg        [1:0]    execute_to_memory_ENV_CTRL;
+  reg        [1:0]    decode_to_execute_ENV_CTRL;
   wire                when_Pipeline_l124_39;
-  reg        [1:0]    memory_to_writeBack_ENV_CTRL;
+  reg        [1:0]    execute_to_memory_ENV_CTRL;
   wire                when_Pipeline_l124_40;
-  reg                 decode_to_execute_IS_MUL;
+  reg        [1:0]    memory_to_writeBack_ENV_CTRL;
   wire                when_Pipeline_l124_41;
-  reg                 execute_to_memory_IS_MUL;
+  reg                 decode_to_execute_IS_MUL;
   wire                when_Pipeline_l124_42;
-  reg                 memory_to_writeBack_IS_MUL;
+  reg                 execute_to_memory_IS_MUL;
   wire                when_Pipeline_l124_43;
-  reg                 decode_to_execute_IS_DIV;
+  reg                 memory_to_writeBack_IS_MUL;
   wire                when_Pipeline_l124_44;
-  reg                 execute_to_memory_IS_DIV;
+  reg                 decode_to_execute_IS_DIV;
   wire                when_Pipeline_l124_45;
-  reg                 decode_to_execute_IS_RS1_SIGNED;
+  reg                 execute_to_memory_IS_DIV;
   wire                when_Pipeline_l124_46;
-  reg                 decode_to_execute_IS_RS2_SIGNED;
+  reg                 decode_to_execute_IS_RS1_SIGNED;
   wire                when_Pipeline_l124_47;
-  reg        [31:0]   decode_to_execute_RS1;
+  reg                 decode_to_execute_IS_RS2_SIGNED;
   wire                when_Pipeline_l124_48;
-  reg        [31:0]   decode_to_execute_RS2;
+  reg        [31:0]   decode_to_execute_RS1;
   wire                when_Pipeline_l124_49;
-  reg                 decode_to_execute_SRC2_FORCE_ZERO;
+  reg        [31:0]   decode_to_execute_RS2;
   wire                when_Pipeline_l124_50;
-  reg                 decode_to_execute_PREDICTION_HAD_BRANCHED2;
+  reg                 decode_to_execute_SRC2_FORCE_ZERO;
   wire                when_Pipeline_l124_51;
-  reg                 decode_to_execute_CSR_WRITE_OPCODE;
+  reg                 decode_to_execute_PREDICTION_HAD_BRANCHED2;
   wire                when_Pipeline_l124_52;
-  reg                 decode_to_execute_CSR_READ_OPCODE;
+  reg                 decode_to_execute_CSR_WRITE_OPCODE;
   wire                when_Pipeline_l124_53;
-  reg                 decode_to_execute_DO_EBREAK;
+  reg                 decode_to_execute_CSR_READ_OPCODE;
   wire                when_Pipeline_l124_54;
-  reg        [31:0]   execute_to_memory_MEMORY_STORE_DATA_RF;
+  reg                 decode_to_execute_DO_EBREAK;
   wire                when_Pipeline_l124_55;
-  reg        [31:0]   memory_to_writeBack_MEMORY_STORE_DATA_RF;
+  reg        [31:0]   execute_to_memory_MEMORY_STORE_DATA_RF;
   wire                when_Pipeline_l124_56;
-  reg        [31:0]   execute_to_memory_REGFILE_WRITE_DATA;
+  reg        [31:0]   memory_to_writeBack_MEMORY_STORE_DATA_RF;
   wire                when_Pipeline_l124_57;
-  reg        [31:0]   memory_to_writeBack_REGFILE_WRITE_DATA;
+  reg        [31:0]   execute_to_memory_REGFILE_WRITE_DATA;
   wire                when_Pipeline_l124_58;
-  reg        [31:0]   execute_to_memory_SHIFT_RIGHT;
+  reg        [31:0]   memory_to_writeBack_REGFILE_WRITE_DATA;
   wire                when_Pipeline_l124_59;
-  reg                 execute_to_memory_BRANCH_DO;
+  reg        [31:0]   execute_to_memory_SHIFT_RIGHT;
   wire                when_Pipeline_l124_60;
-  reg        [31:0]   execute_to_memory_BRANCH_CALC;
+  reg                 execute_to_memory_BRANCH_DO;
   wire                when_Pipeline_l124_61;
-  reg        [31:0]   execute_to_memory_MUL_LL;
+  reg        [31:0]   execute_to_memory_BRANCH_CALC;
   wire                when_Pipeline_l124_62;
-  reg        [33:0]   execute_to_memory_MUL_LH;
+  reg        [31:0]   execute_to_memory_MUL_LL;
   wire                when_Pipeline_l124_63;
-  reg        [33:0]   execute_to_memory_MUL_HL;
+  reg        [33:0]   execute_to_memory_MUL_LH;
   wire                when_Pipeline_l124_64;
-  reg        [33:0]   execute_to_memory_MUL_HH;
+  reg        [33:0]   execute_to_memory_MUL_HL;
   wire                when_Pipeline_l124_65;
-  reg        [33:0]   memory_to_writeBack_MUL_HH;
+  reg        [33:0]   execute_to_memory_MUL_HH;
   wire                when_Pipeline_l124_66;
+  reg        [33:0]   memory_to_writeBack_MUL_HH;
+  wire                when_Pipeline_l124_67;
   reg        [51:0]   memory_to_writeBack_MUL_LOW;
   wire                when_Pipeline_l151;
   wire                when_Pipeline_l154;
@@ -1621,14 +1633,19 @@ module VexRiscv (
   assign _zz_decode_LEGAL_INSTRUCTION_7 = (decode_INSTRUCTION & 32'h0000707b);
   assign _zz_decode_LEGAL_INSTRUCTION_8 = 32'h00000063;
   assign _zz_decode_LEGAL_INSTRUCTION_9 = ((decode_INSTRUCTION & 32'h0000607f) == 32'h0000000f);
-  assign _zz_decode_LEGAL_INSTRUCTION_10 = ((decode_INSTRUCTION & 32'hfc00007f) == 32'h00000033);
-  assign _zz_decode_LEGAL_INSTRUCTION_11 = {((decode_INSTRUCTION & 32'hf800707f) == 32'h1800202f),{((decode_INSTRUCTION & 32'h01f0707f) == 32'h0000500f),{((decode_INSTRUCTION & _zz_decode_LEGAL_INSTRUCTION_12) == 32'h00005013),{(_zz_decode_LEGAL_INSTRUCTION_13 == _zz_decode_LEGAL_INSTRUCTION_14),{_zz_decode_LEGAL_INSTRUCTION_15,{_zz_decode_LEGAL_INSTRUCTION_16,_zz_decode_LEGAL_INSTRUCTION_17}}}}}};
-  assign _zz_decode_LEGAL_INSTRUCTION_12 = 32'hbc00707f;
-  assign _zz_decode_LEGAL_INSTRUCTION_13 = (decode_INSTRUCTION & 32'hfc00307f);
-  assign _zz_decode_LEGAL_INSTRUCTION_14 = 32'h00001013;
-  assign _zz_decode_LEGAL_INSTRUCTION_15 = ((decode_INSTRUCTION & 32'hbe00707f) == 32'h00005033);
-  assign _zz_decode_LEGAL_INSTRUCTION_16 = ((decode_INSTRUCTION & 32'hbe00707f) == 32'h00000033);
-  assign _zz_decode_LEGAL_INSTRUCTION_17 = {((decode_INSTRUCTION & 32'hf9f0707f) == 32'h1000202f),{((decode_INSTRUCTION & 32'hdfffffff) == 32'h10200073),{((decode_INSTRUCTION & 32'hffefffff) == 32'h00000073),((decode_INSTRUCTION & 32'hffffffff) == 32'h10500073)}}};
+  assign _zz_decode_LEGAL_INSTRUCTION_10 = ((decode_INSTRUCTION & 32'h1800707f) == 32'h0000202f);
+  assign _zz_decode_LEGAL_INSTRUCTION_11 = {((decode_INSTRUCTION & 32'hfc00007f) == 32'h00000033),{((decode_INSTRUCTION & 32'he800707f) == 32'h0800202f),{((decode_INSTRUCTION & _zz_decode_LEGAL_INSTRUCTION_12) == 32'h0000500f),{(_zz_decode_LEGAL_INSTRUCTION_13 == _zz_decode_LEGAL_INSTRUCTION_14),{_zz_decode_LEGAL_INSTRUCTION_15,{_zz_decode_LEGAL_INSTRUCTION_16,_zz_decode_LEGAL_INSTRUCTION_17}}}}}};
+  assign _zz_decode_LEGAL_INSTRUCTION_12 = 32'h01f0707f;
+  assign _zz_decode_LEGAL_INSTRUCTION_13 = (decode_INSTRUCTION & 32'hbc00707f);
+  assign _zz_decode_LEGAL_INSTRUCTION_14 = 32'h00005013;
+  assign _zz_decode_LEGAL_INSTRUCTION_15 = ((decode_INSTRUCTION & 32'hfc00307f) == 32'h00001013);
+  assign _zz_decode_LEGAL_INSTRUCTION_16 = ((decode_INSTRUCTION & 32'hbe00707f) == 32'h00005033);
+  assign _zz_decode_LEGAL_INSTRUCTION_17 = {((decode_INSTRUCTION & 32'hbe00707f) == 32'h00000033),{((decode_INSTRUCTION & 32'hf9f0707f) == 32'h1000202f),{((decode_INSTRUCTION & _zz_decode_LEGAL_INSTRUCTION_18) == 32'h10200073),{(_zz_decode_LEGAL_INSTRUCTION_19 == _zz_decode_LEGAL_INSTRUCTION_20),(_zz_decode_LEGAL_INSTRUCTION_21 == _zz_decode_LEGAL_INSTRUCTION_22)}}}};
+  assign _zz_decode_LEGAL_INSTRUCTION_18 = 32'hdfffffff;
+  assign _zz_decode_LEGAL_INSTRUCTION_19 = (decode_INSTRUCTION & 32'hffefffff);
+  assign _zz_decode_LEGAL_INSTRUCTION_20 = 32'h00000073;
+  assign _zz_decode_LEGAL_INSTRUCTION_21 = (decode_INSTRUCTION & 32'hffffffff);
+  assign _zz_decode_LEGAL_INSTRUCTION_22 = 32'h10500073;
   assign _zz_IBusCachedPlugin_decompressor_decompressed_28 = (_zz_IBusCachedPlugin_decompressor_decompressed[11 : 10] == 2'b01);
   assign _zz_IBusCachedPlugin_decompressor_decompressed_29 = ((_zz_IBusCachedPlugin_decompressor_decompressed[11 : 10] == 2'b11) && (_zz_IBusCachedPlugin_decompressor_decompressed[6 : 5] == 2'b00));
   assign _zz_IBusCachedPlugin_decompressor_decompressed_30 = 7'h0;
@@ -1681,133 +1698,134 @@ module VexRiscv (
   assign _zz__zz_decode_IS_RS2_SIGNED_38 = {_zz_decode_IS_RS2_SIGNED_7,(_zz__zz_decode_IS_RS2_SIGNED_39 == _zz__zz_decode_IS_RS2_SIGNED_40)};
   assign _zz__zz_decode_IS_RS2_SIGNED_41 = (|(_zz__zz_decode_IS_RS2_SIGNED_42 == _zz__zz_decode_IS_RS2_SIGNED_43));
   assign _zz__zz_decode_IS_RS2_SIGNED_44 = (|_zz__zz_decode_IS_RS2_SIGNED_45);
-  assign _zz__zz_decode_IS_RS2_SIGNED_46 = {(|_zz__zz_decode_IS_RS2_SIGNED_47),{_zz__zz_decode_IS_RS2_SIGNED_53,{_zz__zz_decode_IS_RS2_SIGNED_55,_zz__zz_decode_IS_RS2_SIGNED_68}}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_46 = {(|_zz__zz_decode_IS_RS2_SIGNED_47),{_zz__zz_decode_IS_RS2_SIGNED_53,{_zz__zz_decode_IS_RS2_SIGNED_55,_zz__zz_decode_IS_RS2_SIGNED_58}}};
   assign _zz__zz_decode_IS_RS2_SIGNED_39 = (decode_INSTRUCTION & 32'h00005000);
   assign _zz__zz_decode_IS_RS2_SIGNED_40 = 32'h00001000;
   assign _zz__zz_decode_IS_RS2_SIGNED_42 = (decode_INSTRUCTION & 32'h00004048);
   assign _zz__zz_decode_IS_RS2_SIGNED_43 = 32'h00004008;
   assign _zz__zz_decode_IS_RS2_SIGNED_45 = ((decode_INSTRUCTION & 32'h00000064) == 32'h00000024);
-  assign _zz__zz_decode_IS_RS2_SIGNED_47 = {((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_48) == 32'h00000020),{(_zz__zz_decode_IS_RS2_SIGNED_49 == _zz__zz_decode_IS_RS2_SIGNED_50),(_zz__zz_decode_IS_RS2_SIGNED_51 == _zz__zz_decode_IS_RS2_SIGNED_52)}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_47 = {((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_48) == 32'h00000020),{(_zz__zz_decode_IS_RS2_SIGNED_49 == _zz__zz_decode_IS_RS2_SIGNED_50),{_zz__zz_decode_IS_RS2_SIGNED_51,_zz__zz_decode_IS_RS2_SIGNED_52}}};
   assign _zz__zz_decode_IS_RS2_SIGNED_53 = (|((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_54) == 32'h00000008));
-  assign _zz__zz_decode_IS_RS2_SIGNED_55 = (|{_zz__zz_decode_IS_RS2_SIGNED_56,{_zz__zz_decode_IS_RS2_SIGNED_58,_zz__zz_decode_IS_RS2_SIGNED_61}});
-  assign _zz__zz_decode_IS_RS2_SIGNED_68 = {(|{_zz__zz_decode_IS_RS2_SIGNED_69,_zz__zz_decode_IS_RS2_SIGNED_72}),{(|_zz__zz_decode_IS_RS2_SIGNED_75),{_zz__zz_decode_IS_RS2_SIGNED_88,{_zz__zz_decode_IS_RS2_SIGNED_101,_zz__zz_decode_IS_RS2_SIGNED_117}}}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_55 = (|(_zz__zz_decode_IS_RS2_SIGNED_56 == _zz__zz_decode_IS_RS2_SIGNED_57));
+  assign _zz__zz_decode_IS_RS2_SIGNED_58 = {(|{_zz__zz_decode_IS_RS2_SIGNED_59,_zz__zz_decode_IS_RS2_SIGNED_61}),{(|_zz__zz_decode_IS_RS2_SIGNED_70),{_zz__zz_decode_IS_RS2_SIGNED_77,{_zz__zz_decode_IS_RS2_SIGNED_90,_zz__zz_decode_IS_RS2_SIGNED_103}}}};
   assign _zz__zz_decode_IS_RS2_SIGNED_48 = 32'h00000034;
   assign _zz__zz_decode_IS_RS2_SIGNED_49 = (decode_INSTRUCTION & 32'h00000064);
   assign _zz__zz_decode_IS_RS2_SIGNED_50 = 32'h00000020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_51 = (decode_INSTRUCTION & 32'h08000070);
-  assign _zz__zz_decode_IS_RS2_SIGNED_52 = 32'h08000020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_54 = 32'h00000008;
-  assign _zz__zz_decode_IS_RS2_SIGNED_56 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_57) == 32'h00002040);
-  assign _zz__zz_decode_IS_RS2_SIGNED_58 = (_zz__zz_decode_IS_RS2_SIGNED_59 == _zz__zz_decode_IS_RS2_SIGNED_60);
-  assign _zz__zz_decode_IS_RS2_SIGNED_61 = {_zz__zz_decode_IS_RS2_SIGNED_62,{_zz__zz_decode_IS_RS2_SIGNED_64,_zz__zz_decode_IS_RS2_SIGNED_67}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_69 = (_zz__zz_decode_IS_RS2_SIGNED_70 == _zz__zz_decode_IS_RS2_SIGNED_71);
-  assign _zz__zz_decode_IS_RS2_SIGNED_72 = (_zz__zz_decode_IS_RS2_SIGNED_73 == _zz__zz_decode_IS_RS2_SIGNED_74);
-  assign _zz__zz_decode_IS_RS2_SIGNED_75 = {_zz__zz_decode_IS_RS2_SIGNED_76,{_zz__zz_decode_IS_RS2_SIGNED_78,_zz__zz_decode_IS_RS2_SIGNED_81}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_88 = (|{_zz__zz_decode_IS_RS2_SIGNED_89,_zz__zz_decode_IS_RS2_SIGNED_90});
-  assign _zz__zz_decode_IS_RS2_SIGNED_101 = (|_zz__zz_decode_IS_RS2_SIGNED_102);
-  assign _zz__zz_decode_IS_RS2_SIGNED_117 = {_zz__zz_decode_IS_RS2_SIGNED_118,{_zz__zz_decode_IS_RS2_SIGNED_123,_zz__zz_decode_IS_RS2_SIGNED_127}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_57 = 32'h00002040;
-  assign _zz__zz_decode_IS_RS2_SIGNED_59 = (decode_INSTRUCTION & 32'h00001040);
-  assign _zz__zz_decode_IS_RS2_SIGNED_60 = 32'h00001040;
-  assign _zz__zz_decode_IS_RS2_SIGNED_62 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_63) == 32'h00000040);
-  assign _zz__zz_decode_IS_RS2_SIGNED_64 = (_zz__zz_decode_IS_RS2_SIGNED_65 == _zz__zz_decode_IS_RS2_SIGNED_66);
-  assign _zz__zz_decode_IS_RS2_SIGNED_67 = {_zz_decode_IS_RS2_SIGNED_7,_zz_decode_IS_RS2_SIGNED_4};
-  assign _zz__zz_decode_IS_RS2_SIGNED_70 = (decode_INSTRUCTION & 32'h08000020);
-  assign _zz__zz_decode_IS_RS2_SIGNED_71 = 32'h08000020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_73 = (decode_INSTRUCTION & 32'h00000028);
-  assign _zz__zz_decode_IS_RS2_SIGNED_74 = 32'h00000020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_76 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_77) == 32'h00000040);
-  assign _zz__zz_decode_IS_RS2_SIGNED_78 = (_zz__zz_decode_IS_RS2_SIGNED_79 == _zz__zz_decode_IS_RS2_SIGNED_80);
-  assign _zz__zz_decode_IS_RS2_SIGNED_81 = {_zz__zz_decode_IS_RS2_SIGNED_82,{_zz__zz_decode_IS_RS2_SIGNED_84,_zz__zz_decode_IS_RS2_SIGNED_85}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_89 = _zz_decode_IS_RS2_SIGNED_6;
-  assign _zz__zz_decode_IS_RS2_SIGNED_90 = {_zz__zz_decode_IS_RS2_SIGNED_91,{_zz__zz_decode_IS_RS2_SIGNED_93,_zz__zz_decode_IS_RS2_SIGNED_96}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_102 = {_zz_decode_IS_RS2_SIGNED_2,{_zz__zz_decode_IS_RS2_SIGNED_103,_zz__zz_decode_IS_RS2_SIGNED_106}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_118 = (|{_zz__zz_decode_IS_RS2_SIGNED_119,_zz__zz_decode_IS_RS2_SIGNED_120});
-  assign _zz__zz_decode_IS_RS2_SIGNED_123 = (|_zz__zz_decode_IS_RS2_SIGNED_124);
-  assign _zz__zz_decode_IS_RS2_SIGNED_127 = {_zz__zz_decode_IS_RS2_SIGNED_128,{_zz__zz_decode_IS_RS2_SIGNED_131,_zz__zz_decode_IS_RS2_SIGNED_135}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_63 = 32'h00100040;
-  assign _zz__zz_decode_IS_RS2_SIGNED_65 = (decode_INSTRUCTION & 32'h00000050);
-  assign _zz__zz_decode_IS_RS2_SIGNED_66 = 32'h00000040;
-  assign _zz__zz_decode_IS_RS2_SIGNED_77 = 32'h00000040;
-  assign _zz__zz_decode_IS_RS2_SIGNED_79 = (decode_INSTRUCTION & 32'h00004020);
-  assign _zz__zz_decode_IS_RS2_SIGNED_80 = 32'h00004020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_82 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_83) == 32'h00000010);
-  assign _zz__zz_decode_IS_RS2_SIGNED_84 = _zz_decode_IS_RS2_SIGNED_6;
-  assign _zz__zz_decode_IS_RS2_SIGNED_85 = (_zz__zz_decode_IS_RS2_SIGNED_86 == _zz__zz_decode_IS_RS2_SIGNED_87);
-  assign _zz__zz_decode_IS_RS2_SIGNED_91 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_92) == 32'h00002010);
-  assign _zz__zz_decode_IS_RS2_SIGNED_93 = (_zz__zz_decode_IS_RS2_SIGNED_94 == _zz__zz_decode_IS_RS2_SIGNED_95);
-  assign _zz__zz_decode_IS_RS2_SIGNED_96 = {_zz__zz_decode_IS_RS2_SIGNED_97,_zz__zz_decode_IS_RS2_SIGNED_99};
-  assign _zz__zz_decode_IS_RS2_SIGNED_103 = (_zz__zz_decode_IS_RS2_SIGNED_104 == _zz__zz_decode_IS_RS2_SIGNED_105);
-  assign _zz__zz_decode_IS_RS2_SIGNED_106 = {_zz__zz_decode_IS_RS2_SIGNED_107,{_zz__zz_decode_IS_RS2_SIGNED_109,_zz__zz_decode_IS_RS2_SIGNED_112}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_119 = _zz_decode_IS_RS2_SIGNED_5;
-  assign _zz__zz_decode_IS_RS2_SIGNED_120 = (_zz__zz_decode_IS_RS2_SIGNED_121 == _zz__zz_decode_IS_RS2_SIGNED_122);
-  assign _zz__zz_decode_IS_RS2_SIGNED_124 = {_zz_decode_IS_RS2_SIGNED_5,_zz__zz_decode_IS_RS2_SIGNED_125};
-  assign _zz__zz_decode_IS_RS2_SIGNED_128 = (|_zz__zz_decode_IS_RS2_SIGNED_129);
-  assign _zz__zz_decode_IS_RS2_SIGNED_131 = (|_zz__zz_decode_IS_RS2_SIGNED_132);
-  assign _zz__zz_decode_IS_RS2_SIGNED_135 = {_zz__zz_decode_IS_RS2_SIGNED_136,{_zz__zz_decode_IS_RS2_SIGNED_146,_zz__zz_decode_IS_RS2_SIGNED_150}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_83 = 32'h00000030;
-  assign _zz__zz_decode_IS_RS2_SIGNED_86 = (decode_INSTRUCTION & 32'h12000020);
-  assign _zz__zz_decode_IS_RS2_SIGNED_87 = 32'h00000020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_92 = 32'h00002030;
-  assign _zz__zz_decode_IS_RS2_SIGNED_94 = (decode_INSTRUCTION & 32'h00001030);
-  assign _zz__zz_decode_IS_RS2_SIGNED_95 = 32'h00000010;
-  assign _zz__zz_decode_IS_RS2_SIGNED_97 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_98) == 32'h00000020);
-  assign _zz__zz_decode_IS_RS2_SIGNED_99 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_100) == 32'h00002020);
-  assign _zz__zz_decode_IS_RS2_SIGNED_104 = (decode_INSTRUCTION & 32'h00001010);
-  assign _zz__zz_decode_IS_RS2_SIGNED_105 = 32'h00001010;
-  assign _zz__zz_decode_IS_RS2_SIGNED_107 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_108) == 32'h00002010);
-  assign _zz__zz_decode_IS_RS2_SIGNED_109 = (_zz__zz_decode_IS_RS2_SIGNED_110 == _zz__zz_decode_IS_RS2_SIGNED_111);
-  assign _zz__zz_decode_IS_RS2_SIGNED_112 = {_zz__zz_decode_IS_RS2_SIGNED_113,{_zz__zz_decode_IS_RS2_SIGNED_114,_zz__zz_decode_IS_RS2_SIGNED_115}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_121 = (decode_INSTRUCTION & 32'h00000070);
-  assign _zz__zz_decode_IS_RS2_SIGNED_122 = 32'h00000020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_125 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_126) == 32'h0);
-  assign _zz__zz_decode_IS_RS2_SIGNED_129 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_130) == 32'h00004010);
-  assign _zz__zz_decode_IS_RS2_SIGNED_132 = (_zz__zz_decode_IS_RS2_SIGNED_133 == _zz__zz_decode_IS_RS2_SIGNED_134);
-  assign _zz__zz_decode_IS_RS2_SIGNED_136 = (|{_zz__zz_decode_IS_RS2_SIGNED_137,_zz__zz_decode_IS_RS2_SIGNED_139});
-  assign _zz__zz_decode_IS_RS2_SIGNED_146 = (|_zz__zz_decode_IS_RS2_SIGNED_147);
-  assign _zz__zz_decode_IS_RS2_SIGNED_150 = {_zz__zz_decode_IS_RS2_SIGNED_151,{_zz__zz_decode_IS_RS2_SIGNED_157,_zz__zz_decode_IS_RS2_SIGNED_162}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_98 = 32'h02003020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_100 = 32'h12002060;
-  assign _zz__zz_decode_IS_RS2_SIGNED_108 = 32'h00002010;
-  assign _zz__zz_decode_IS_RS2_SIGNED_110 = (decode_INSTRUCTION & 32'h00002008);
-  assign _zz__zz_decode_IS_RS2_SIGNED_111 = 32'h00002008;
-  assign _zz__zz_decode_IS_RS2_SIGNED_113 = ((decode_INSTRUCTION & 32'h00000050) == 32'h00000010);
-  assign _zz__zz_decode_IS_RS2_SIGNED_114 = _zz_decode_IS_RS2_SIGNED_6;
-  assign _zz__zz_decode_IS_RS2_SIGNED_115 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_116) == 32'h0);
-  assign _zz__zz_decode_IS_RS2_SIGNED_126 = 32'h00000020;
-  assign _zz__zz_decode_IS_RS2_SIGNED_130 = 32'h00004014;
-  assign _zz__zz_decode_IS_RS2_SIGNED_133 = (decode_INSTRUCTION & 32'h00006014);
-  assign _zz__zz_decode_IS_RS2_SIGNED_134 = 32'h00002010;
-  assign _zz__zz_decode_IS_RS2_SIGNED_137 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_138) == 32'h0);
-  assign _zz__zz_decode_IS_RS2_SIGNED_139 = {_zz_decode_IS_RS2_SIGNED_4,{_zz__zz_decode_IS_RS2_SIGNED_140,{_zz__zz_decode_IS_RS2_SIGNED_141,_zz__zz_decode_IS_RS2_SIGNED_143}}};
-  assign _zz__zz_decode_IS_RS2_SIGNED_147 = {_zz_decode_IS_RS2_SIGNED_3,(_zz__zz_decode_IS_RS2_SIGNED_148 == _zz__zz_decode_IS_RS2_SIGNED_149)};
-  assign _zz__zz_decode_IS_RS2_SIGNED_151 = (|{_zz__zz_decode_IS_RS2_SIGNED_152,{_zz__zz_decode_IS_RS2_SIGNED_153,_zz__zz_decode_IS_RS2_SIGNED_155}});
-  assign _zz__zz_decode_IS_RS2_SIGNED_157 = (|{_zz__zz_decode_IS_RS2_SIGNED_158,_zz__zz_decode_IS_RS2_SIGNED_159});
-  assign _zz__zz_decode_IS_RS2_SIGNED_162 = {(|_zz__zz_decode_IS_RS2_SIGNED_163),(|_zz__zz_decode_IS_RS2_SIGNED_166)};
-  assign _zz__zz_decode_IS_RS2_SIGNED_116 = 32'h00000028;
-  assign _zz__zz_decode_IS_RS2_SIGNED_138 = 32'h00000044;
-  assign _zz__zz_decode_IS_RS2_SIGNED_140 = ((decode_INSTRUCTION & 32'h00006004) == 32'h00002000);
-  assign _zz__zz_decode_IS_RS2_SIGNED_141 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_142) == 32'h00001000);
-  assign _zz__zz_decode_IS_RS2_SIGNED_143 = {(_zz__zz_decode_IS_RS2_SIGNED_144 == _zz__zz_decode_IS_RS2_SIGNED_145),_zz_decode_IS_RS2_SIGNED_3};
-  assign _zz__zz_decode_IS_RS2_SIGNED_148 = (decode_INSTRUCTION & 32'h00000058);
-  assign _zz__zz_decode_IS_RS2_SIGNED_149 = 32'h0;
-  assign _zz__zz_decode_IS_RS2_SIGNED_152 = ((decode_INSTRUCTION & 32'h00000044) == 32'h00000040);
-  assign _zz__zz_decode_IS_RS2_SIGNED_153 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_154) == 32'h00002010);
-  assign _zz__zz_decode_IS_RS2_SIGNED_155 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_156) == 32'h40000030);
-  assign _zz__zz_decode_IS_RS2_SIGNED_158 = _zz_decode_IS_RS2_SIGNED_2;
-  assign _zz__zz_decode_IS_RS2_SIGNED_159 = {_zz_decode_IS_RS2_SIGNED_1,(_zz__zz_decode_IS_RS2_SIGNED_160 == _zz__zz_decode_IS_RS2_SIGNED_161)};
-  assign _zz__zz_decode_IS_RS2_SIGNED_163 = {_zz_decode_IS_RS2_SIGNED_1,(_zz__zz_decode_IS_RS2_SIGNED_164 == _zz__zz_decode_IS_RS2_SIGNED_165)};
-  assign _zz__zz_decode_IS_RS2_SIGNED_166 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_167) == 32'h00001008);
-  assign _zz__zz_decode_IS_RS2_SIGNED_142 = 32'h00005004;
-  assign _zz__zz_decode_IS_RS2_SIGNED_144 = (decode_INSTRUCTION & 32'h00004050);
-  assign _zz__zz_decode_IS_RS2_SIGNED_145 = 32'h00004000;
-  assign _zz__zz_decode_IS_RS2_SIGNED_154 = 32'h00002014;
-  assign _zz__zz_decode_IS_RS2_SIGNED_156 = 32'h40000034;
-  assign _zz__zz_decode_IS_RS2_SIGNED_160 = (decode_INSTRUCTION & 32'h00002014);
-  assign _zz__zz_decode_IS_RS2_SIGNED_161 = 32'h00000004;
-  assign _zz__zz_decode_IS_RS2_SIGNED_164 = (decode_INSTRUCTION & 32'h0000004c);
-  assign _zz__zz_decode_IS_RS2_SIGNED_165 = 32'h00000004;
-  assign _zz__zz_decode_IS_RS2_SIGNED_167 = 32'h00005048;
+  assign _zz__zz_decode_IS_RS2_SIGNED_51 = ((decode_INSTRUCTION & 32'h08000070) == 32'h08000020);
+  assign _zz__zz_decode_IS_RS2_SIGNED_52 = ((decode_INSTRUCTION & 32'h10000070) == 32'h00000020);
+  assign _zz__zz_decode_IS_RS2_SIGNED_54 = 32'h10000008;
+  assign _zz__zz_decode_IS_RS2_SIGNED_56 = (decode_INSTRUCTION & 32'h10000008);
+  assign _zz__zz_decode_IS_RS2_SIGNED_57 = 32'h10000008;
+  assign _zz__zz_decode_IS_RS2_SIGNED_59 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_60) == 32'h00002040);
+  assign _zz__zz_decode_IS_RS2_SIGNED_61 = {(_zz__zz_decode_IS_RS2_SIGNED_62 == _zz__zz_decode_IS_RS2_SIGNED_63),{_zz__zz_decode_IS_RS2_SIGNED_64,{_zz__zz_decode_IS_RS2_SIGNED_66,_zz__zz_decode_IS_RS2_SIGNED_69}}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_70 = {(_zz__zz_decode_IS_RS2_SIGNED_71 == _zz__zz_decode_IS_RS2_SIGNED_72),{_zz__zz_decode_IS_RS2_SIGNED_73,_zz__zz_decode_IS_RS2_SIGNED_75}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_77 = (|{_zz__zz_decode_IS_RS2_SIGNED_78,{_zz__zz_decode_IS_RS2_SIGNED_80,_zz__zz_decode_IS_RS2_SIGNED_83}});
+  assign _zz__zz_decode_IS_RS2_SIGNED_90 = (|{_zz__zz_decode_IS_RS2_SIGNED_91,_zz__zz_decode_IS_RS2_SIGNED_92});
+  assign _zz__zz_decode_IS_RS2_SIGNED_103 = {(|_zz__zz_decode_IS_RS2_SIGNED_104),{_zz__zz_decode_IS_RS2_SIGNED_119,{_zz__zz_decode_IS_RS2_SIGNED_124,_zz__zz_decode_IS_RS2_SIGNED_128}}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_60 = 32'h00002040;
+  assign _zz__zz_decode_IS_RS2_SIGNED_62 = (decode_INSTRUCTION & 32'h00001040);
+  assign _zz__zz_decode_IS_RS2_SIGNED_63 = 32'h00001040;
+  assign _zz__zz_decode_IS_RS2_SIGNED_64 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_65) == 32'h00000040);
+  assign _zz__zz_decode_IS_RS2_SIGNED_66 = (_zz__zz_decode_IS_RS2_SIGNED_67 == _zz__zz_decode_IS_RS2_SIGNED_68);
+  assign _zz__zz_decode_IS_RS2_SIGNED_69 = {_zz_decode_IS_RS2_SIGNED_7,_zz_decode_IS_RS2_SIGNED_4};
+  assign _zz__zz_decode_IS_RS2_SIGNED_71 = (decode_INSTRUCTION & 32'h08000020);
+  assign _zz__zz_decode_IS_RS2_SIGNED_72 = 32'h08000020;
+  assign _zz__zz_decode_IS_RS2_SIGNED_73 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_74) == 32'h00000020);
+  assign _zz__zz_decode_IS_RS2_SIGNED_75 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_76) == 32'h00000020);
+  assign _zz__zz_decode_IS_RS2_SIGNED_78 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_79) == 32'h00000040);
+  assign _zz__zz_decode_IS_RS2_SIGNED_80 = (_zz__zz_decode_IS_RS2_SIGNED_81 == _zz__zz_decode_IS_RS2_SIGNED_82);
+  assign _zz__zz_decode_IS_RS2_SIGNED_83 = {_zz__zz_decode_IS_RS2_SIGNED_84,{_zz__zz_decode_IS_RS2_SIGNED_86,_zz__zz_decode_IS_RS2_SIGNED_87}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_91 = _zz_decode_IS_RS2_SIGNED_6;
+  assign _zz__zz_decode_IS_RS2_SIGNED_92 = {_zz__zz_decode_IS_RS2_SIGNED_93,{_zz__zz_decode_IS_RS2_SIGNED_95,_zz__zz_decode_IS_RS2_SIGNED_98}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_104 = {_zz_decode_IS_RS2_SIGNED_2,{_zz__zz_decode_IS_RS2_SIGNED_105,_zz__zz_decode_IS_RS2_SIGNED_108}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_119 = (|{_zz__zz_decode_IS_RS2_SIGNED_120,_zz__zz_decode_IS_RS2_SIGNED_121});
+  assign _zz__zz_decode_IS_RS2_SIGNED_124 = (|_zz__zz_decode_IS_RS2_SIGNED_125);
+  assign _zz__zz_decode_IS_RS2_SIGNED_128 = {_zz__zz_decode_IS_RS2_SIGNED_129,{_zz__zz_decode_IS_RS2_SIGNED_132,_zz__zz_decode_IS_RS2_SIGNED_136}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_65 = 32'h00100040;
+  assign _zz__zz_decode_IS_RS2_SIGNED_67 = (decode_INSTRUCTION & 32'h00000050);
+  assign _zz__zz_decode_IS_RS2_SIGNED_68 = 32'h00000040;
+  assign _zz__zz_decode_IS_RS2_SIGNED_74 = 32'h10000020;
+  assign _zz__zz_decode_IS_RS2_SIGNED_76 = 32'h00000028;
+  assign _zz__zz_decode_IS_RS2_SIGNED_79 = 32'h00000040;
+  assign _zz__zz_decode_IS_RS2_SIGNED_81 = (decode_INSTRUCTION & 32'h00004020);
+  assign _zz__zz_decode_IS_RS2_SIGNED_82 = 32'h00004020;
+  assign _zz__zz_decode_IS_RS2_SIGNED_84 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_85) == 32'h00000010);
+  assign _zz__zz_decode_IS_RS2_SIGNED_86 = _zz_decode_IS_RS2_SIGNED_6;
+  assign _zz__zz_decode_IS_RS2_SIGNED_87 = (_zz__zz_decode_IS_RS2_SIGNED_88 == _zz__zz_decode_IS_RS2_SIGNED_89);
+  assign _zz__zz_decode_IS_RS2_SIGNED_93 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_94) == 32'h00002010);
+  assign _zz__zz_decode_IS_RS2_SIGNED_95 = (_zz__zz_decode_IS_RS2_SIGNED_96 == _zz__zz_decode_IS_RS2_SIGNED_97);
+  assign _zz__zz_decode_IS_RS2_SIGNED_98 = {_zz__zz_decode_IS_RS2_SIGNED_99,_zz__zz_decode_IS_RS2_SIGNED_101};
+  assign _zz__zz_decode_IS_RS2_SIGNED_105 = (_zz__zz_decode_IS_RS2_SIGNED_106 == _zz__zz_decode_IS_RS2_SIGNED_107);
+  assign _zz__zz_decode_IS_RS2_SIGNED_108 = {_zz__zz_decode_IS_RS2_SIGNED_109,{_zz__zz_decode_IS_RS2_SIGNED_111,_zz__zz_decode_IS_RS2_SIGNED_114}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_120 = _zz_decode_IS_RS2_SIGNED_5;
+  assign _zz__zz_decode_IS_RS2_SIGNED_121 = (_zz__zz_decode_IS_RS2_SIGNED_122 == _zz__zz_decode_IS_RS2_SIGNED_123);
+  assign _zz__zz_decode_IS_RS2_SIGNED_125 = {_zz_decode_IS_RS2_SIGNED_5,_zz__zz_decode_IS_RS2_SIGNED_126};
+  assign _zz__zz_decode_IS_RS2_SIGNED_129 = (|_zz__zz_decode_IS_RS2_SIGNED_130);
+  assign _zz__zz_decode_IS_RS2_SIGNED_132 = (|_zz__zz_decode_IS_RS2_SIGNED_133);
+  assign _zz__zz_decode_IS_RS2_SIGNED_136 = {_zz__zz_decode_IS_RS2_SIGNED_137,{_zz__zz_decode_IS_RS2_SIGNED_147,_zz__zz_decode_IS_RS2_SIGNED_151}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_85 = 32'h00000030;
+  assign _zz__zz_decode_IS_RS2_SIGNED_88 = (decode_INSTRUCTION & 32'h02000028);
+  assign _zz__zz_decode_IS_RS2_SIGNED_89 = 32'h00000020;
+  assign _zz__zz_decode_IS_RS2_SIGNED_94 = 32'h00002030;
+  assign _zz__zz_decode_IS_RS2_SIGNED_96 = (decode_INSTRUCTION & 32'h00001030);
+  assign _zz__zz_decode_IS_RS2_SIGNED_97 = 32'h00000010;
+  assign _zz__zz_decode_IS_RS2_SIGNED_99 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_100) == 32'h00000020);
+  assign _zz__zz_decode_IS_RS2_SIGNED_101 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_102) == 32'h00002020);
+  assign _zz__zz_decode_IS_RS2_SIGNED_106 = (decode_INSTRUCTION & 32'h00001010);
+  assign _zz__zz_decode_IS_RS2_SIGNED_107 = 32'h00001010;
+  assign _zz__zz_decode_IS_RS2_SIGNED_109 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_110) == 32'h00002010);
+  assign _zz__zz_decode_IS_RS2_SIGNED_111 = (_zz__zz_decode_IS_RS2_SIGNED_112 == _zz__zz_decode_IS_RS2_SIGNED_113);
+  assign _zz__zz_decode_IS_RS2_SIGNED_114 = {_zz__zz_decode_IS_RS2_SIGNED_115,{_zz__zz_decode_IS_RS2_SIGNED_116,_zz__zz_decode_IS_RS2_SIGNED_117}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_122 = (decode_INSTRUCTION & 32'h00000070);
+  assign _zz__zz_decode_IS_RS2_SIGNED_123 = 32'h00000020;
+  assign _zz__zz_decode_IS_RS2_SIGNED_126 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_127) == 32'h0);
+  assign _zz__zz_decode_IS_RS2_SIGNED_130 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_131) == 32'h00004010);
+  assign _zz__zz_decode_IS_RS2_SIGNED_133 = (_zz__zz_decode_IS_RS2_SIGNED_134 == _zz__zz_decode_IS_RS2_SIGNED_135);
+  assign _zz__zz_decode_IS_RS2_SIGNED_137 = (|{_zz__zz_decode_IS_RS2_SIGNED_138,_zz__zz_decode_IS_RS2_SIGNED_140});
+  assign _zz__zz_decode_IS_RS2_SIGNED_147 = (|_zz__zz_decode_IS_RS2_SIGNED_148);
+  assign _zz__zz_decode_IS_RS2_SIGNED_151 = {_zz__zz_decode_IS_RS2_SIGNED_152,{_zz__zz_decode_IS_RS2_SIGNED_158,_zz__zz_decode_IS_RS2_SIGNED_163}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_100 = 32'h02003020;
+  assign _zz__zz_decode_IS_RS2_SIGNED_102 = 32'h02002068;
+  assign _zz__zz_decode_IS_RS2_SIGNED_110 = 32'h00002010;
+  assign _zz__zz_decode_IS_RS2_SIGNED_112 = (decode_INSTRUCTION & 32'h00002008);
+  assign _zz__zz_decode_IS_RS2_SIGNED_113 = 32'h00002008;
+  assign _zz__zz_decode_IS_RS2_SIGNED_115 = ((decode_INSTRUCTION & 32'h00000050) == 32'h00000010);
+  assign _zz__zz_decode_IS_RS2_SIGNED_116 = _zz_decode_IS_RS2_SIGNED_6;
+  assign _zz__zz_decode_IS_RS2_SIGNED_117 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_118) == 32'h0);
+  assign _zz__zz_decode_IS_RS2_SIGNED_127 = 32'h00000020;
+  assign _zz__zz_decode_IS_RS2_SIGNED_131 = 32'h00004014;
+  assign _zz__zz_decode_IS_RS2_SIGNED_134 = (decode_INSTRUCTION & 32'h00006014);
+  assign _zz__zz_decode_IS_RS2_SIGNED_135 = 32'h00002010;
+  assign _zz__zz_decode_IS_RS2_SIGNED_138 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_139) == 32'h0);
+  assign _zz__zz_decode_IS_RS2_SIGNED_140 = {_zz_decode_IS_RS2_SIGNED_4,{_zz__zz_decode_IS_RS2_SIGNED_141,{_zz__zz_decode_IS_RS2_SIGNED_142,_zz__zz_decode_IS_RS2_SIGNED_144}}};
+  assign _zz__zz_decode_IS_RS2_SIGNED_148 = {_zz_decode_IS_RS2_SIGNED_3,(_zz__zz_decode_IS_RS2_SIGNED_149 == _zz__zz_decode_IS_RS2_SIGNED_150)};
+  assign _zz__zz_decode_IS_RS2_SIGNED_152 = (|{_zz__zz_decode_IS_RS2_SIGNED_153,{_zz__zz_decode_IS_RS2_SIGNED_154,_zz__zz_decode_IS_RS2_SIGNED_156}});
+  assign _zz__zz_decode_IS_RS2_SIGNED_158 = (|{_zz__zz_decode_IS_RS2_SIGNED_159,_zz__zz_decode_IS_RS2_SIGNED_160});
+  assign _zz__zz_decode_IS_RS2_SIGNED_163 = {(|_zz__zz_decode_IS_RS2_SIGNED_164),(|_zz__zz_decode_IS_RS2_SIGNED_167)};
+  assign _zz__zz_decode_IS_RS2_SIGNED_118 = 32'h00000028;
+  assign _zz__zz_decode_IS_RS2_SIGNED_139 = 32'h00000044;
+  assign _zz__zz_decode_IS_RS2_SIGNED_141 = ((decode_INSTRUCTION & 32'h00006004) == 32'h00002000);
+  assign _zz__zz_decode_IS_RS2_SIGNED_142 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_143) == 32'h00001000);
+  assign _zz__zz_decode_IS_RS2_SIGNED_144 = {(_zz__zz_decode_IS_RS2_SIGNED_145 == _zz__zz_decode_IS_RS2_SIGNED_146),_zz_decode_IS_RS2_SIGNED_3};
+  assign _zz__zz_decode_IS_RS2_SIGNED_149 = (decode_INSTRUCTION & 32'h00000058);
+  assign _zz__zz_decode_IS_RS2_SIGNED_150 = 32'h0;
+  assign _zz__zz_decode_IS_RS2_SIGNED_153 = ((decode_INSTRUCTION & 32'h00000044) == 32'h00000040);
+  assign _zz__zz_decode_IS_RS2_SIGNED_154 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_155) == 32'h00002010);
+  assign _zz__zz_decode_IS_RS2_SIGNED_156 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_157) == 32'h40000030);
+  assign _zz__zz_decode_IS_RS2_SIGNED_159 = _zz_decode_IS_RS2_SIGNED_2;
+  assign _zz__zz_decode_IS_RS2_SIGNED_160 = {_zz_decode_IS_RS2_SIGNED_1,(_zz__zz_decode_IS_RS2_SIGNED_161 == _zz__zz_decode_IS_RS2_SIGNED_162)};
+  assign _zz__zz_decode_IS_RS2_SIGNED_164 = {_zz_decode_IS_RS2_SIGNED_1,(_zz__zz_decode_IS_RS2_SIGNED_165 == _zz__zz_decode_IS_RS2_SIGNED_166)};
+  assign _zz__zz_decode_IS_RS2_SIGNED_167 = ((decode_INSTRUCTION & _zz__zz_decode_IS_RS2_SIGNED_168) == 32'h00001008);
+  assign _zz__zz_decode_IS_RS2_SIGNED_143 = 32'h00005004;
+  assign _zz__zz_decode_IS_RS2_SIGNED_145 = (decode_INSTRUCTION & 32'h00004050);
+  assign _zz__zz_decode_IS_RS2_SIGNED_146 = 32'h00004000;
+  assign _zz__zz_decode_IS_RS2_SIGNED_155 = 32'h00002014;
+  assign _zz__zz_decode_IS_RS2_SIGNED_157 = 32'h40000034;
+  assign _zz__zz_decode_IS_RS2_SIGNED_161 = (decode_INSTRUCTION & 32'h00002014);
+  assign _zz__zz_decode_IS_RS2_SIGNED_162 = 32'h00000004;
+  assign _zz__zz_decode_IS_RS2_SIGNED_165 = (decode_INSTRUCTION & 32'h0000004c);
+  assign _zz__zz_decode_IS_RS2_SIGNED_166 = 32'h00000004;
+  assign _zz__zz_decode_IS_RS2_SIGNED_168 = 32'h00005048;
   assign _zz_execute_BranchPlugin_branch_src2_6 = execute_INSTRUCTION[31];
   assign _zz_execute_BranchPlugin_branch_src2_7 = execute_INSTRUCTION[31];
   assign _zz_execute_BranchPlugin_branch_src2_8 = execute_INSTRUCTION[7];
@@ -1879,6 +1897,9 @@ module VexRiscv (
     .io_cpu_execute_args_wr                 (execute_MEMORY_WR                                ), //i
     .io_cpu_execute_args_size               (execute_DBusCachedPlugin_size[1:0]               ), //i
     .io_cpu_execute_args_isLrsc             (dataCache_1_io_cpu_execute_args_isLrsc           ), //i
+    .io_cpu_execute_args_isAmo              (execute_MEMORY_AMO                               ), //i
+    .io_cpu_execute_args_amoCtrl_swap       (dataCache_1_io_cpu_execute_args_amoCtrl_swap     ), //i
+    .io_cpu_execute_args_amoCtrl_alu        (dataCache_1_io_cpu_execute_args_amoCtrl_alu[2:0] ), //i
     .io_cpu_execute_args_totalyConsistent   (execute_MEMORY_FORCE_CONSTISTENCY                ), //i
     .io_cpu_execute_refilling               (dataCache_1_io_cpu_execute_refilling             ), //o
     .io_cpu_memory_isValid                  (dataCache_1_io_cpu_memory_isValid                ), //i
@@ -2667,25 +2688,25 @@ module VexRiscv (
   assign decode_CSR_WRITE_OPCODE = (! (((decode_INSTRUCTION[14 : 13] == 2'b01) && (decode_INSTRUCTION[19 : 15] == 5'h0)) || ((decode_INSTRUCTION[14 : 13] == 2'b11) && (decode_INSTRUCTION[19 : 15] == 5'h0))));
   assign decode_PREDICTION_HAD_BRANCHED2 = IBusCachedPlugin_decodePrediction_cmd_hadBranch;
   assign decode_SRC2_FORCE_ZERO = (decode_SRC_ADD_ZERO && (! decode_SRC_USE_SUB_LESS));
-  assign decode_IS_RS2_SIGNED = _zz_decode_IS_RS2_SIGNED[32];
-  assign decode_IS_RS1_SIGNED = _zz_decode_IS_RS2_SIGNED[31];
-  assign decode_IS_DIV = _zz_decode_IS_RS2_SIGNED[30];
+  assign decode_IS_RS2_SIGNED = _zz_decode_IS_RS2_SIGNED[33];
+  assign decode_IS_RS1_SIGNED = _zz_decode_IS_RS2_SIGNED[32];
+  assign decode_IS_DIV = _zz_decode_IS_RS2_SIGNED[31];
   assign memory_IS_MUL = execute_to_memory_IS_MUL;
   assign execute_IS_MUL = decode_to_execute_IS_MUL;
-  assign decode_IS_MUL = _zz_decode_IS_RS2_SIGNED[29];
+  assign decode_IS_MUL = _zz_decode_IS_RS2_SIGNED[30];
   assign _zz_memory_to_writeBack_ENV_CTRL = _zz_memory_to_writeBack_ENV_CTRL_1;
   assign _zz_execute_to_memory_ENV_CTRL = _zz_execute_to_memory_ENV_CTRL_1;
   assign decode_ENV_CTRL = _zz_decode_ENV_CTRL;
   assign _zz_decode_to_execute_ENV_CTRL = _zz_decode_to_execute_ENV_CTRL_1;
-  assign decode_IS_CSR = _zz_decode_IS_RS2_SIGNED[26];
+  assign decode_IS_CSR = _zz_decode_IS_RS2_SIGNED[27];
   assign _zz_decode_to_execute_BRANCH_CTRL = _zz_decode_to_execute_BRANCH_CTRL_1;
   assign _zz_execute_to_memory_SHIFT_CTRL = _zz_execute_to_memory_SHIFT_CTRL_1;
   assign decode_SHIFT_CTRL = _zz_decode_SHIFT_CTRL;
   assign _zz_decode_to_execute_SHIFT_CTRL = _zz_decode_to_execute_SHIFT_CTRL_1;
   assign decode_ALU_BITWISE_CTRL = _zz_decode_ALU_BITWISE_CTRL;
   assign _zz_decode_to_execute_ALU_BITWISE_CTRL = _zz_decode_to_execute_ALU_BITWISE_CTRL_1;
-  assign decode_SRC_LESS_UNSIGNED = _zz_decode_IS_RS2_SIGNED[19];
-  assign decode_MEMORY_MANAGMENT = _zz_decode_IS_RS2_SIGNED[18];
+  assign decode_SRC_LESS_UNSIGNED = _zz_decode_IS_RS2_SIGNED[20];
+  assign decode_MEMORY_MANAGMENT = _zz_decode_IS_RS2_SIGNED[19];
   assign memory_MEMORY_LRSC = execute_to_memory_MEMORY_LRSC;
   assign memory_MEMORY_WR = execute_to_memory_MEMORY_WR;
   assign decode_MEMORY_WR = _zz_decode_IS_RS2_SIGNED[13];
@@ -2705,7 +2726,7 @@ module VexRiscv (
   assign decode_FORMAL_PC_NEXT = (decode_PC + _zz_decode_FORMAL_PC_NEXT);
   assign memory_PC = execute_to_memory_PC;
   assign execute_DO_EBREAK = decode_to_execute_DO_EBREAK;
-  assign decode_IS_EBREAK = _zz_decode_IS_RS2_SIGNED[33];
+  assign decode_IS_EBREAK = _zz_decode_IS_RS2_SIGNED[34];
   assign execute_IS_RS1_SIGNED = decode_to_execute_IS_RS1_SIGNED;
   assign execute_IS_DIV = decode_to_execute_IS_DIV;
   assign execute_IS_RS2_SIGNED = decode_to_execute_IS_RS2_SIGNED;
@@ -2728,7 +2749,7 @@ module VexRiscv (
   assign execute_BRANCH_COND_RESULT = _zz_execute_BRANCH_COND_RESULT_1;
   assign execute_PREDICTION_HAD_BRANCHED2 = decode_to_execute_PREDICTION_HAD_BRANCHED2;
   assign execute_BRANCH_CTRL = _zz_execute_BRANCH_CTRL;
-  assign decode_RS2_USE = _zz_decode_IS_RS2_SIGNED[16];
+  assign decode_RS2_USE = _zz_decode_IS_RS2_SIGNED[17];
   assign decode_RS1_USE = _zz_decode_IS_RS2_SIGNED[5];
   always @(*) begin
     _zz_decode_RS2 = execute_REGFILE_WRITE_DATA;
@@ -2833,7 +2854,7 @@ module VexRiscv (
   assign execute_IS_RVC = decode_to_execute_IS_RVC;
   assign execute_SRC1_CTRL = _zz_execute_SRC1_CTRL;
   assign decode_SRC_USE_SUB_LESS = _zz_decode_IS_RS2_SIGNED[3];
-  assign decode_SRC_ADD_ZERO = _zz_decode_IS_RS2_SIGNED[17];
+  assign decode_SRC_ADD_ZERO = _zz_decode_IS_RS2_SIGNED[18];
   assign execute_SRC_ADD_SUB = execute_SrcPlugin_addSub;
   assign execute_SRC_LESS = execute_SrcPlugin_less;
   assign execute_ALU_CTRL = _zz_execute_ALU_CTRL;
@@ -2882,6 +2903,7 @@ module VexRiscv (
   assign writeBack_MEMORY_ENABLE = memory_to_writeBack_MEMORY_ENABLE;
   assign memory_REGFILE_WRITE_DATA = execute_to_memory_REGFILE_WRITE_DATA;
   assign memory_MEMORY_ENABLE = execute_to_memory_MEMORY_ENABLE;
+  assign execute_MEMORY_AMO = decode_to_execute_MEMORY_AMO;
   assign execute_MEMORY_LRSC = decode_to_execute_MEMORY_LRSC;
   assign execute_MEMORY_FORCE_CONSTISTENCY = decode_to_execute_MEMORY_FORCE_CONSTISTENCY;
   assign execute_RS1 = decode_to_execute_RS1;
@@ -2891,6 +2913,7 @@ module VexRiscv (
   assign execute_SRC_ADD = execute_SrcPlugin_addSub;
   assign execute_MEMORY_ENABLE = decode_to_execute_MEMORY_ENABLE;
   assign execute_INSTRUCTION = decode_to_execute_INSTRUCTION;
+  assign decode_MEMORY_AMO = _zz_decode_IS_RS2_SIGNED[16];
   assign decode_MEMORY_LRSC = _zz_decode_IS_RS2_SIGNED[15];
   assign decode_MEMORY_ENABLE = _zz_decode_IS_RS2_SIGNED[4];
   assign decode_FLUSH_ALL = _zz_decode_IS_RS2_SIGNED[0];
@@ -3796,6 +3819,9 @@ module VexRiscv (
       if(decode_MEMORY_LRSC) begin
         _zz_decode_MEMORY_FORCE_CONSTISTENCY = 1'b1;
       end
+      if(decode_MEMORY_AMO) begin
+        _zz_decode_MEMORY_FORCE_CONSTISTENCY = 1'b1;
+      end
     end
   end
 
@@ -3829,6 +3855,8 @@ module VexRiscv (
     end
   end
 
+  assign dataCache_1_io_cpu_execute_args_amoCtrl_alu = execute_INSTRUCTION[31 : 29];
+  assign dataCache_1_io_cpu_execute_args_amoCtrl_swap = execute_INSTRUCTION[27];
   assign when_DBusCachedPlugin_l366 = (dataCache_1_io_cpu_execute_refilling && execute_arbitration_isValid);
   assign dataCache_1_io_cpu_memory_isValid = (memory_arbitration_isValid && memory_MEMORY_ENABLE);
   assign dataCache_1_io_cpu_memory_address = memory_REGFILE_WRITE_DATA;
@@ -4019,13 +4047,13 @@ module VexRiscv (
   assign _zz_decode_ALU_CTRL_1 = _zz_decode_ALU_CTRL_2;
   assign _zz_decode_SRC2_CTRL_2 = _zz_decode_IS_RS2_SIGNED[9 : 8];
   assign _zz_decode_SRC2_CTRL_1 = _zz_decode_SRC2_CTRL_2;
-  assign _zz_decode_ALU_BITWISE_CTRL_2 = _zz_decode_IS_RS2_SIGNED[21 : 20];
+  assign _zz_decode_ALU_BITWISE_CTRL_2 = _zz_decode_IS_RS2_SIGNED[22 : 21];
   assign _zz_decode_ALU_BITWISE_CTRL_1 = _zz_decode_ALU_BITWISE_CTRL_2;
-  assign _zz_decode_SHIFT_CTRL_2 = _zz_decode_IS_RS2_SIGNED[23 : 22];
+  assign _zz_decode_SHIFT_CTRL_2 = _zz_decode_IS_RS2_SIGNED[24 : 23];
   assign _zz_decode_SHIFT_CTRL_1 = _zz_decode_SHIFT_CTRL_2;
-  assign _zz_decode_BRANCH_CTRL_2 = _zz_decode_IS_RS2_SIGNED[25 : 24];
+  assign _zz_decode_BRANCH_CTRL_2 = _zz_decode_IS_RS2_SIGNED[26 : 25];
   assign _zz_decode_BRANCH_CTRL = _zz_decode_BRANCH_CTRL_2;
-  assign _zz_decode_ENV_CTRL_2 = _zz_decode_IS_RS2_SIGNED[28 : 27];
+  assign _zz_decode_ENV_CTRL_2 = _zz_decode_IS_RS2_SIGNED[29 : 28];
   assign _zz_decode_ENV_CTRL_1 = _zz_decode_ENV_CTRL_2;
   assign decodeExceptionPort_valid = (decode_arbitration_isValid && (! decode_LEGAL_INSTRUCTION));
   assign decodeExceptionPort_payload_code = 4'b0010;
@@ -4952,38 +4980,38 @@ module VexRiscv (
   assign when_Pipeline_l124_29 = (! writeBack_arbitration_isStuck);
   assign when_Pipeline_l124_30 = (! execute_arbitration_isStuck);
   assign when_Pipeline_l124_31 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_32 = (! execute_arbitration_isStuck);
   assign _zz_decode_to_execute_ALU_BITWISE_CTRL_1 = decode_ALU_BITWISE_CTRL;
   assign _zz_decode_ALU_BITWISE_CTRL = _zz_decode_ALU_BITWISE_CTRL_1;
-  assign when_Pipeline_l124_32 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_33 = (! execute_arbitration_isStuck);
   assign _zz_execute_ALU_BITWISE_CTRL = decode_to_execute_ALU_BITWISE_CTRL;
   assign _zz_decode_to_execute_SHIFT_CTRL_1 = decode_SHIFT_CTRL;
   assign _zz_execute_to_memory_SHIFT_CTRL_1 = execute_SHIFT_CTRL;
   assign _zz_decode_SHIFT_CTRL = _zz_decode_SHIFT_CTRL_1;
-  assign when_Pipeline_l124_33 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_34 = (! execute_arbitration_isStuck);
   assign _zz_execute_SHIFT_CTRL = decode_to_execute_SHIFT_CTRL;
-  assign when_Pipeline_l124_34 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_35 = (! memory_arbitration_isStuck);
   assign _zz_memory_SHIFT_CTRL = execute_to_memory_SHIFT_CTRL;
   assign _zz_decode_to_execute_BRANCH_CTRL_1 = decode_BRANCH_CTRL;
   assign _zz_decode_BRANCH_CTRL_1 = _zz_decode_BRANCH_CTRL;
-  assign when_Pipeline_l124_35 = (! execute_arbitration_isStuck);
-  assign _zz_execute_BRANCH_CTRL = decode_to_execute_BRANCH_CTRL;
   assign when_Pipeline_l124_36 = (! execute_arbitration_isStuck);
+  assign _zz_execute_BRANCH_CTRL = decode_to_execute_BRANCH_CTRL;
+  assign when_Pipeline_l124_37 = (! execute_arbitration_isStuck);
   assign _zz_decode_to_execute_ENV_CTRL_1 = decode_ENV_CTRL;
   assign _zz_execute_to_memory_ENV_CTRL_1 = execute_ENV_CTRL;
   assign _zz_memory_to_writeBack_ENV_CTRL_1 = memory_ENV_CTRL;
   assign _zz_decode_ENV_CTRL = _zz_decode_ENV_CTRL_1;
-  assign when_Pipeline_l124_37 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_38 = (! execute_arbitration_isStuck);
   assign _zz_execute_ENV_CTRL = decode_to_execute_ENV_CTRL;
-  assign when_Pipeline_l124_38 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_39 = (! memory_arbitration_isStuck);
   assign _zz_memory_ENV_CTRL = execute_to_memory_ENV_CTRL;
-  assign when_Pipeline_l124_39 = (! writeBack_arbitration_isStuck);
+  assign when_Pipeline_l124_40 = (! writeBack_arbitration_isStuck);
   assign _zz_writeBack_ENV_CTRL = memory_to_writeBack_ENV_CTRL;
-  assign when_Pipeline_l124_40 = (! execute_arbitration_isStuck);
-  assign when_Pipeline_l124_41 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_42 = (! writeBack_arbitration_isStuck);
-  assign when_Pipeline_l124_43 = (! execute_arbitration_isStuck);
-  assign when_Pipeline_l124_44 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_45 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_41 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_42 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_43 = (! writeBack_arbitration_isStuck);
+  assign when_Pipeline_l124_44 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_45 = (! memory_arbitration_isStuck);
   assign when_Pipeline_l124_46 = (! execute_arbitration_isStuck);
   assign when_Pipeline_l124_47 = (! execute_arbitration_isStuck);
   assign when_Pipeline_l124_48 = (! execute_arbitration_isStuck);
@@ -4992,19 +5020,20 @@ module VexRiscv (
   assign when_Pipeline_l124_51 = (! execute_arbitration_isStuck);
   assign when_Pipeline_l124_52 = (! execute_arbitration_isStuck);
   assign when_Pipeline_l124_53 = (! execute_arbitration_isStuck);
-  assign when_Pipeline_l124_54 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_55 = (! writeBack_arbitration_isStuck);
-  assign when_Pipeline_l124_56 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_57 = (! writeBack_arbitration_isStuck);
-  assign when_Pipeline_l124_58 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_54 = (! execute_arbitration_isStuck);
+  assign when_Pipeline_l124_55 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_56 = (! writeBack_arbitration_isStuck);
+  assign when_Pipeline_l124_57 = (! memory_arbitration_isStuck);
+  assign when_Pipeline_l124_58 = (! writeBack_arbitration_isStuck);
   assign when_Pipeline_l124_59 = (! memory_arbitration_isStuck);
   assign when_Pipeline_l124_60 = (! memory_arbitration_isStuck);
   assign when_Pipeline_l124_61 = (! memory_arbitration_isStuck);
   assign when_Pipeline_l124_62 = (! memory_arbitration_isStuck);
   assign when_Pipeline_l124_63 = (! memory_arbitration_isStuck);
   assign when_Pipeline_l124_64 = (! memory_arbitration_isStuck);
-  assign when_Pipeline_l124_65 = (! writeBack_arbitration_isStuck);
+  assign when_Pipeline_l124_65 = (! memory_arbitration_isStuck);
   assign when_Pipeline_l124_66 = (! writeBack_arbitration_isStuck);
+  assign when_Pipeline_l124_67 = (! writeBack_arbitration_isStuck);
   assign decode_arbitration_isFlushed = (({writeBack_arbitration_flushNext,{memory_arbitration_flushNext,execute_arbitration_flushNext}} != 3'b000) || ({writeBack_arbitration_flushIt,{memory_arbitration_flushIt,{execute_arbitration_flushIt,decode_arbitration_flushIt}}} != 4'b0000));
   assign execute_arbitration_isFlushed = (({writeBack_arbitration_flushNext,memory_arbitration_flushNext} != 2'b00) || ({writeBack_arbitration_flushIt,{memory_arbitration_flushIt,execute_arbitration_flushIt}} != 3'b000));
   assign memory_arbitration_isFlushed = ((writeBack_arbitration_flushNext != 1'b0) || ({writeBack_arbitration_flushIt,memory_arbitration_flushIt} != 2'b00));
@@ -5819,114 +5848,117 @@ module VexRiscv (
       memory_to_writeBack_MEMORY_LRSC <= memory_MEMORY_LRSC;
     end
     if(when_Pipeline_l124_30) begin
-      decode_to_execute_MEMORY_MANAGMENT <= decode_MEMORY_MANAGMENT;
+      decode_to_execute_MEMORY_AMO <= decode_MEMORY_AMO;
     end
     if(when_Pipeline_l124_31) begin
-      decode_to_execute_SRC_LESS_UNSIGNED <= decode_SRC_LESS_UNSIGNED;
+      decode_to_execute_MEMORY_MANAGMENT <= decode_MEMORY_MANAGMENT;
     end
     if(when_Pipeline_l124_32) begin
-      decode_to_execute_ALU_BITWISE_CTRL <= _zz_decode_to_execute_ALU_BITWISE_CTRL;
+      decode_to_execute_SRC_LESS_UNSIGNED <= decode_SRC_LESS_UNSIGNED;
     end
     if(when_Pipeline_l124_33) begin
-      decode_to_execute_SHIFT_CTRL <= _zz_decode_to_execute_SHIFT_CTRL;
+      decode_to_execute_ALU_BITWISE_CTRL <= _zz_decode_to_execute_ALU_BITWISE_CTRL;
     end
     if(when_Pipeline_l124_34) begin
-      execute_to_memory_SHIFT_CTRL <= _zz_execute_to_memory_SHIFT_CTRL;
+      decode_to_execute_SHIFT_CTRL <= _zz_decode_to_execute_SHIFT_CTRL;
     end
     if(when_Pipeline_l124_35) begin
-      decode_to_execute_BRANCH_CTRL <= _zz_decode_to_execute_BRANCH_CTRL;
+      execute_to_memory_SHIFT_CTRL <= _zz_execute_to_memory_SHIFT_CTRL;
     end
     if(when_Pipeline_l124_36) begin
-      decode_to_execute_IS_CSR <= decode_IS_CSR;
+      decode_to_execute_BRANCH_CTRL <= _zz_decode_to_execute_BRANCH_CTRL;
     end
     if(when_Pipeline_l124_37) begin
-      decode_to_execute_ENV_CTRL <= _zz_decode_to_execute_ENV_CTRL;
+      decode_to_execute_IS_CSR <= decode_IS_CSR;
     end
     if(when_Pipeline_l124_38) begin
-      execute_to_memory_ENV_CTRL <= _zz_execute_to_memory_ENV_CTRL;
+      decode_to_execute_ENV_CTRL <= _zz_decode_to_execute_ENV_CTRL;
     end
     if(when_Pipeline_l124_39) begin
-      memory_to_writeBack_ENV_CTRL <= _zz_memory_to_writeBack_ENV_CTRL;
+      execute_to_memory_ENV_CTRL <= _zz_execute_to_memory_ENV_CTRL;
     end
     if(when_Pipeline_l124_40) begin
-      decode_to_execute_IS_MUL <= decode_IS_MUL;
+      memory_to_writeBack_ENV_CTRL <= _zz_memory_to_writeBack_ENV_CTRL;
     end
     if(when_Pipeline_l124_41) begin
-      execute_to_memory_IS_MUL <= execute_IS_MUL;
+      decode_to_execute_IS_MUL <= decode_IS_MUL;
     end
     if(when_Pipeline_l124_42) begin
-      memory_to_writeBack_IS_MUL <= memory_IS_MUL;
+      execute_to_memory_IS_MUL <= execute_IS_MUL;
     end
     if(when_Pipeline_l124_43) begin
-      decode_to_execute_IS_DIV <= decode_IS_DIV;
+      memory_to_writeBack_IS_MUL <= memory_IS_MUL;
     end
     if(when_Pipeline_l124_44) begin
-      execute_to_memory_IS_DIV <= execute_IS_DIV;
+      decode_to_execute_IS_DIV <= decode_IS_DIV;
     end
     if(when_Pipeline_l124_45) begin
-      decode_to_execute_IS_RS1_SIGNED <= decode_IS_RS1_SIGNED;
+      execute_to_memory_IS_DIV <= execute_IS_DIV;
     end
     if(when_Pipeline_l124_46) begin
-      decode_to_execute_IS_RS2_SIGNED <= decode_IS_RS2_SIGNED;
+      decode_to_execute_IS_RS1_SIGNED <= decode_IS_RS1_SIGNED;
     end
     if(when_Pipeline_l124_47) begin
-      decode_to_execute_RS1 <= decode_RS1;
+      decode_to_execute_IS_RS2_SIGNED <= decode_IS_RS2_SIGNED;
     end
     if(when_Pipeline_l124_48) begin
-      decode_to_execute_RS2 <= decode_RS2;
+      decode_to_execute_RS1 <= decode_RS1;
     end
     if(when_Pipeline_l124_49) begin
-      decode_to_execute_SRC2_FORCE_ZERO <= decode_SRC2_FORCE_ZERO;
+      decode_to_execute_RS2 <= decode_RS2;
     end
     if(when_Pipeline_l124_50) begin
-      decode_to_execute_PREDICTION_HAD_BRANCHED2 <= decode_PREDICTION_HAD_BRANCHED2;
+      decode_to_execute_SRC2_FORCE_ZERO <= decode_SRC2_FORCE_ZERO;
     end
     if(when_Pipeline_l124_51) begin
-      decode_to_execute_CSR_WRITE_OPCODE <= decode_CSR_WRITE_OPCODE;
+      decode_to_execute_PREDICTION_HAD_BRANCHED2 <= decode_PREDICTION_HAD_BRANCHED2;
     end
     if(when_Pipeline_l124_52) begin
-      decode_to_execute_CSR_READ_OPCODE <= decode_CSR_READ_OPCODE;
+      decode_to_execute_CSR_WRITE_OPCODE <= decode_CSR_WRITE_OPCODE;
     end
     if(when_Pipeline_l124_53) begin
-      decode_to_execute_DO_EBREAK <= decode_DO_EBREAK;
+      decode_to_execute_CSR_READ_OPCODE <= decode_CSR_READ_OPCODE;
     end
     if(when_Pipeline_l124_54) begin
-      execute_to_memory_MEMORY_STORE_DATA_RF <= execute_MEMORY_STORE_DATA_RF;
+      decode_to_execute_DO_EBREAK <= decode_DO_EBREAK;
     end
     if(when_Pipeline_l124_55) begin
-      memory_to_writeBack_MEMORY_STORE_DATA_RF <= memory_MEMORY_STORE_DATA_RF;
+      execute_to_memory_MEMORY_STORE_DATA_RF <= execute_MEMORY_STORE_DATA_RF;
     end
     if(when_Pipeline_l124_56) begin
-      execute_to_memory_REGFILE_WRITE_DATA <= _zz_decode_RS2;
+      memory_to_writeBack_MEMORY_STORE_DATA_RF <= memory_MEMORY_STORE_DATA_RF;
     end
     if(when_Pipeline_l124_57) begin
-      memory_to_writeBack_REGFILE_WRITE_DATA <= _zz_decode_RS2_1;
+      execute_to_memory_REGFILE_WRITE_DATA <= _zz_decode_RS2;
     end
     if(when_Pipeline_l124_58) begin
-      execute_to_memory_SHIFT_RIGHT <= execute_SHIFT_RIGHT;
+      memory_to_writeBack_REGFILE_WRITE_DATA <= _zz_decode_RS2_1;
     end
     if(when_Pipeline_l124_59) begin
-      execute_to_memory_BRANCH_DO <= execute_BRANCH_DO;
+      execute_to_memory_SHIFT_RIGHT <= execute_SHIFT_RIGHT;
     end
     if(when_Pipeline_l124_60) begin
-      execute_to_memory_BRANCH_CALC <= execute_BRANCH_CALC;
+      execute_to_memory_BRANCH_DO <= execute_BRANCH_DO;
     end
     if(when_Pipeline_l124_61) begin
-      execute_to_memory_MUL_LL <= execute_MUL_LL;
+      execute_to_memory_BRANCH_CALC <= execute_BRANCH_CALC;
     end
     if(when_Pipeline_l124_62) begin
-      execute_to_memory_MUL_LH <= execute_MUL_LH;
+      execute_to_memory_MUL_LL <= execute_MUL_LL;
     end
     if(when_Pipeline_l124_63) begin
-      execute_to_memory_MUL_HL <= execute_MUL_HL;
+      execute_to_memory_MUL_LH <= execute_MUL_LH;
     end
     if(when_Pipeline_l124_64) begin
-      execute_to_memory_MUL_HH <= execute_MUL_HH;
+      execute_to_memory_MUL_HL <= execute_MUL_HL;
     end
     if(when_Pipeline_l124_65) begin
-      memory_to_writeBack_MUL_HH <= memory_MUL_HH;
+      execute_to_memory_MUL_HH <= execute_MUL_HH;
     end
     if(when_Pipeline_l124_66) begin
+      memory_to_writeBack_MUL_HH <= memory_MUL_HH;
+    end
+    if(when_Pipeline_l124_67) begin
       memory_to_writeBack_MUL_LOW <= memory_MUL_LOW;
     end
     if(when_Fetcher_l401) begin
@@ -6162,6 +6194,9 @@ module DataCache (
   input               io_cpu_execute_args_wr,
   input      [1:0]    io_cpu_execute_args_size,
   input               io_cpu_execute_args_isLrsc,
+  input               io_cpu_execute_args_isAmo,
+  input               io_cpu_execute_args_amoCtrl_swap,
+  input      [2:0]    io_cpu_execute_args_amoCtrl_alu,
   input               io_cpu_execute_args_totalyConsistent,
   output              io_cpu_execute_refilling,
   input               io_cpu_memory_isValid,
@@ -6227,6 +6262,14 @@ module DataCache (
   wire       [21:0]   _zz_ways_0_tags_port;
   wire       [9:0]    _zz_stage0_dataColisions;
   wire       [9:0]    _zz__zz_stageA_dataColisions;
+  wire       [31:0]   _zz_stageB_amo_addSub;
+  wire       [31:0]   _zz_stageB_amo_addSub_1;
+  wire       [31:0]   _zz_stageB_amo_addSub_2;
+  wire       [31:0]   _zz_stageB_amo_addSub_3;
+  wire       [31:0]   _zz_stageB_amo_addSub_4;
+  wire       [1:0]    _zz_stageB_amo_addSub_5;
+  wire       [1:0]    _zz_stageB_amo_addSub_6;
+  wire       [1:0]    _zz_stageB_amo_addSub_7;
   wire       [0:0]    _zz_when;
   wire       [2:0]    _zz_loader_counter_valueNext;
   wire       [0:0]    _zz_loader_counter_valueNext_1;
@@ -6275,16 +6318,16 @@ module DataCache (
   wire       [3:0]    stage0_mask;
   wire       [0:0]    stage0_dataColisions;
   wire       [0:0]    stage0_wayInvalidate;
-  wire                stage0_isAmo;
   wire                when_DataCache_l771;
   reg                 stageA_request_wr;
   reg        [1:0]    stageA_request_size;
   reg                 stageA_request_isLrsc;
+  reg                 stageA_request_isAmo;
+  reg                 stageA_request_amoCtrl_swap;
+  reg        [2:0]    stageA_request_amoCtrl_alu;
   reg                 stageA_request_totalyConsistent;
   wire                when_DataCache_l771_1;
   reg        [3:0]    stageA_mask;
-  wire                stageA_isAmo;
-  wire                stageA_isLrsc;
   wire       [0:0]    stageA_wayHits;
   wire                when_DataCache_l771_2;
   reg        [0:0]    stageA_wayInvalidate;
@@ -6296,6 +6339,9 @@ module DataCache (
   reg                 stageB_request_wr;
   reg        [1:0]    stageB_request_size;
   reg                 stageB_request_isLrsc;
+  reg                 stageB_request_isAmo;
+  reg                 stageB_request_amoCtrl_swap;
+  reg        [2:0]    stageB_request_amoCtrl_alu;
   reg                 stageB_request_totalyConsistent;
   reg                 stageB_mmuRspFreeze;
   wire                when_DataCache_l824;
@@ -6338,11 +6384,18 @@ module DataCache (
   reg                 stageB_flusher_start;
   reg                 stageB_lrSc_reserved;
   wire                when_DataCache_l880;
-  wire                stageB_isAmo;
-  wire                stageB_isAmoCached;
   wire                stageB_isExternalLsrc;
   wire                stageB_isExternalAmo;
-  wire       [31:0]   stageB_requestDataBypass;
+  reg        [31:0]   stageB_requestDataBypass;
+  wire                stageB_amo_compare;
+  wire                stageB_amo_unsigned;
+  wire       [31:0]   stageB_amo_addSub;
+  wire                stageB_amo_less;
+  wire                stageB_amo_selectRf;
+  wire       [2:0]    switch_Misc_l210;
+  reg        [31:0]   stageB_amo_result;
+  reg        [31:0]   stageB_amo_resultReg;
+  reg                 stageB_amo_internal_resultRegValid;
   reg                 stageB_cpuWriteToCache;
   wire                when_DataCache_l926;
   wire                stageB_badPermissions;
@@ -6352,6 +6405,7 @@ module DataCache (
   wire                when_DataCache_l999;
   wire                when_DataCache_l1004;
   wire                when_DataCache_l1009;
+  wire                when_DataCache_l1012;
   wire                when_DataCache_l1020;
   wire                when_DataCache_l1025;
   wire                when_DataCache_l1032;
@@ -6387,6 +6441,14 @@ module DataCache (
 
   assign _zz_stage0_dataColisions = (io_cpu_execute_address[11 : 2] >>> 0);
   assign _zz__zz_stageA_dataColisions = (io_cpu_memory_address[11 : 2] >>> 0);
+  assign _zz_stageB_amo_addSub = ($signed(_zz_stageB_amo_addSub_1) + $signed(_zz_stageB_amo_addSub_4));
+  assign _zz_stageB_amo_addSub_1 = ($signed(_zz_stageB_amo_addSub_2) + $signed(_zz_stageB_amo_addSub_3));
+  assign _zz_stageB_amo_addSub_2 = io_cpu_writeBack_storeData[31 : 0];
+  assign _zz_stageB_amo_addSub_3 = (stageB_amo_compare ? (~ stageB_dataMux[31 : 0]) : stageB_dataMux[31 : 0]);
+  assign _zz_stageB_amo_addSub_5 = (stageB_amo_compare ? _zz_stageB_amo_addSub_6 : _zz_stageB_amo_addSub_7);
+  assign _zz_stageB_amo_addSub_4 = {{30{_zz_stageB_amo_addSub_5[1]}}, _zz_stageB_amo_addSub_5};
+  assign _zz_stageB_amo_addSub_6 = 2'b01;
+  assign _zz_stageB_amo_addSub_7 = 2'b00;
   assign _zz_when = 1'b1;
   assign _zz_loader_counter_valueNext_1 = loader_counter_willIncrement;
   assign _zz_loader_counter_valueNext = {2'd0, _zz_loader_counter_valueNext_1};
@@ -6552,6 +6614,11 @@ module DataCache (
       if(!stageB_isExternalAmo) begin
         if(!when_DataCache_l991) begin
           if(when_DataCache_l1004) begin
+            if(stageB_request_isAmo) begin
+              if(when_DataCache_l1012) begin
+                dataWriteCmd_valid = 1'b0;
+              end
+            end
             if(when_DataCache_l1025) begin
               dataWriteCmd_valid = 1'b0;
             end
@@ -6642,12 +6709,9 @@ module DataCache (
   assign stage0_mask = (_zz_stage0_mask <<< io_cpu_execute_address[1 : 0]);
   assign stage0_dataColisions[0] = (((dataWriteCmd_valid && dataWriteCmd_payload_way[0]) && (dataWriteCmd_payload_address == _zz_stage0_dataColisions)) && ((stage0_mask & dataWriteCmd_payload_mask[3 : 0]) != 4'b0000));
   assign stage0_wayInvalidate = 1'b0;
-  assign stage0_isAmo = 1'b0;
   assign when_DataCache_l771 = (! io_cpu_memory_isStuck);
   assign when_DataCache_l771_1 = (! io_cpu_memory_isStuck);
   assign io_cpu_memory_isWrite = stageA_request_wr;
-  assign stageA_isAmo = 1'b0;
-  assign stageA_isLrsc = 1'b0;
   assign stageA_wayHits = ((io_cpu_memory_mmuRsp_physicalAddress[31 : 12] == ways_0_tagsReadRsp_address) && ways_0_tagsReadRsp_valid);
   assign when_DataCache_l771_2 = (! io_cpu_memory_isStuck);
   assign when_DataCache_l771_3 = (! io_cpu_memory_isStuck);
@@ -6708,6 +6772,11 @@ module DataCache (
             if(when_DataCache_l1009) begin
               io_cpu_writeBack_haltIt = 1'b0;
             end
+            if(stageB_request_isAmo) begin
+              if(when_DataCache_l1012) begin
+                io_cpu_writeBack_haltIt = 1'b1;
+              end
+            end
             if(when_DataCache_l1025) begin
               io_cpu_writeBack_haltIt = 1'b0;
             end
@@ -6725,11 +6794,41 @@ module DataCache (
   assign when_DataCache_l856 = (! stageB_flusher_hold);
   assign io_cpu_flush_ready = (stageB_flusher_waitDone && stageB_flusher_counter[7]);
   assign when_DataCache_l880 = (io_cpu_writeBack_isValid && io_cpu_writeBack_isFiring);
-  assign stageB_isAmo = 1'b0;
-  assign stageB_isAmoCached = 1'b0;
   assign stageB_isExternalLsrc = 1'b0;
   assign stageB_isExternalAmo = 1'b0;
-  assign stageB_requestDataBypass = io_cpu_writeBack_storeData;
+  always @(*) begin
+    stageB_requestDataBypass = io_cpu_writeBack_storeData;
+    if(stageB_request_isAmo) begin
+      stageB_requestDataBypass[31 : 0] = stageB_amo_resultReg;
+    end
+  end
+
+  assign stageB_amo_compare = stageB_request_amoCtrl_alu[2];
+  assign stageB_amo_unsigned = (stageB_request_amoCtrl_alu[2 : 1] == 2'b11);
+  assign stageB_amo_addSub = _zz_stageB_amo_addSub;
+  assign stageB_amo_less = ((io_cpu_writeBack_storeData[31] == stageB_dataMux[31]) ? stageB_amo_addSub[31] : (stageB_amo_unsigned ? stageB_dataMux[31] : io_cpu_writeBack_storeData[31]));
+  assign stageB_amo_selectRf = (stageB_request_amoCtrl_swap ? 1'b1 : (stageB_request_amoCtrl_alu[0] ^ stageB_amo_less));
+  assign switch_Misc_l210 = (stageB_request_amoCtrl_alu | {stageB_request_amoCtrl_swap,2'b00});
+  always @(*) begin
+    case(switch_Misc_l210)
+      3'b000 : begin
+        stageB_amo_result = stageB_amo_addSub;
+      end
+      3'b001 : begin
+        stageB_amo_result = (io_cpu_writeBack_storeData[31 : 0] ^ stageB_dataMux[31 : 0]);
+      end
+      3'b010 : begin
+        stageB_amo_result = (io_cpu_writeBack_storeData[31 : 0] | stageB_dataMux[31 : 0]);
+      end
+      3'b011 : begin
+        stageB_amo_result = (io_cpu_writeBack_storeData[31 : 0] & stageB_dataMux[31 : 0]);
+      end
+      default : begin
+        stageB_amo_result = (stageB_amo_selectRf ? io_cpu_writeBack_storeData[31 : 0] : stageB_dataMux[31 : 0]);
+      end
+    endcase
+  end
+
   always @(*) begin
     stageB_cpuWriteToCache = 1'b0;
     if(io_cpu_writeBack_isValid) begin
@@ -6744,7 +6843,7 @@ module DataCache (
   end
 
   assign when_DataCache_l926 = (stageB_request_wr && stageB_waysHit);
-  assign stageB_badPermissions = (((! stageB_mmuRsp_allowWrite) && stageB_request_wr) || ((! stageB_mmuRsp_allowRead) && ((! stageB_request_wr) || stageB_isAmo)));
+  assign stageB_badPermissions = (((! stageB_mmuRsp_allowWrite) && stageB_request_wr) || ((! stageB_mmuRsp_allowRead) && ((! stageB_request_wr) || stageB_request_isAmo)));
   assign stageB_loadStoreFault = (io_cpu_writeBack_isValid && (stageB_mmuRsp_exception || stageB_badPermissions));
   always @(*) begin
     io_cpu_redo = 1'b0;
@@ -6792,6 +6891,14 @@ module DataCache (
           if(when_DataCache_l1004) begin
             if(stageB_request_wr) begin
               io_mem_cmd_valid = 1'b1;
+            end
+            if(stageB_request_isAmo) begin
+              if(when_DataCache_l1012) begin
+                io_mem_cmd_valid = 1'b0;
+              end
+            end
+            if(when_DataCache_l1020) begin
+              io_mem_cmd_valid = 1'b0;
             end
             if(when_DataCache_l1025) begin
               io_mem_cmd_valid = 1'b0;
@@ -6856,9 +6963,10 @@ module DataCache (
   assign io_cpu_writeBack_keepMemRspData = 1'b0;
   assign when_DataCache_l995 = ((! stageB_request_wr) ? (io_mem_rsp_valid && rspSync) : io_mem_cmd_ready);
   assign when_DataCache_l999 = (stageB_request_isLrsc && (! stageB_lrSc_reserved));
-  assign when_DataCache_l1004 = (stageB_waysHit || (stageB_request_wr && (! stageB_isAmoCached)));
+  assign when_DataCache_l1004 = (stageB_waysHit || (stageB_request_wr && (! stageB_request_isAmo)));
   assign when_DataCache_l1009 = ((! stageB_request_wr) || io_mem_cmd_ready);
-  assign when_DataCache_l1020 = (((! stageB_request_wr) || stageB_isAmoCached) && ((stageB_dataColisions & stageB_waysHits) != 1'b0));
+  assign when_DataCache_l1012 = (! stageB_amo_internal_resultRegValid);
+  assign when_DataCache_l1020 = (((! stageB_request_wr) || stageB_request_isAmo) && ((stageB_dataColisions & stageB_waysHits) != 1'b0));
   assign when_DataCache_l1025 = (stageB_request_isLrsc && (! stageB_lrSc_reserved));
   assign when_DataCache_l1032 = (! memCmdSent);
   assign when_DataCache_l991 = (stageB_mmuRsp_isIoAccess || stageB_isExternalLsrc);
@@ -6908,6 +7016,9 @@ module DataCache (
       stageA_request_wr <= io_cpu_execute_args_wr;
       stageA_request_size <= io_cpu_execute_args_size;
       stageA_request_isLrsc <= io_cpu_execute_args_isLrsc;
+      stageA_request_isAmo <= io_cpu_execute_args_isAmo;
+      stageA_request_amoCtrl_swap <= io_cpu_execute_args_amoCtrl_swap;
+      stageA_request_amoCtrl_alu <= io_cpu_execute_args_amoCtrl_alu;
       stageA_request_totalyConsistent <= io_cpu_execute_args_totalyConsistent;
     end
     if(when_DataCache_l771_1) begin
@@ -6923,6 +7034,9 @@ module DataCache (
       stageB_request_wr <= stageA_request_wr;
       stageB_request_size <= stageA_request_size;
       stageB_request_isLrsc <= stageA_request_isLrsc;
+      stageB_request_isAmo <= stageA_request_isAmo;
+      stageB_request_amoCtrl_swap <= stageA_request_amoCtrl_swap;
+      stageB_request_amoCtrl_alu <= stageA_request_amoCtrl_alu;
       stageB_request_totalyConsistent <= stageA_request_totalyConsistent;
     end
     if(when_DataCache_l824) begin
@@ -6959,6 +7073,8 @@ module DataCache (
     if(when_DataCache_l820_4) begin
       stageB_mask <= stageA_mask;
     end
+    stageB_amo_internal_resultRegValid <= io_cpu_writeBack_isStuck;
+    stageB_amo_resultReg <= stageB_amo_result;
     loader_valid_regNext <= loader_valid;
   end
 
