@@ -1,7 +1,7 @@
 import os.path
 __dir__ = os.path.split(os.path.abspath(os.path.realpath(__file__)))[0]
 data_location = os.path.join(__dir__, "verilog")
-src = "https://github.com/SpinalHDL/VexRISCV.git"
+src = "https://github.com/vietthanh85/VexRISCV.git"
 
 # Module version
 version_str = "1.0.1.post407"
